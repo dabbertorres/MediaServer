@@ -1,0 +1,81 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "+CZksICKER5UbZ3u3DpixZJ8CBg=",
+			"path": "github.com/fsnotify/fsnotify",
+			"revision": "629574ca2a5df945712d3079857300b5e4da0236",
+			"revisionTime": "2016-10-11T02:33:12Z",
+			"version": "v1",
+			"versionExact": "v1.4.2"
+		},
+		{
+			"path": "github.com/go-mgo/mgo=v2",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "lKZSGeo3VJM52P07QKQClBEd//k=",
+			"path": "github.com/tdewolff/buffer",
+			"revision": "df6253e2a2cda5aba1b5d0c59fc5bdf0a98ae192",
+			"revisionTime": "2017-01-15T11:41:28Z"
+		},
+		{
+			"checksumSHA1": "8IjRUmnqHL2I2wwsKwJjcmC2FiM=",
+			"path": "github.com/tdewolff/minify",
+			"revision": "bf4ffcc476fdee34561726f5b5523dc0f87a707a",
+			"revisionTime": "2017-03-03T09:24:21Z",
+			"version": "v2",
+			"versionExact": "v2.1.0"
+		},
+		{
+			"checksumSHA1": "rUCXUYn/D8n393KtX/7jpXz2dVg=",
+			"path": "github.com/tdewolff/parse",
+			"revision": "874ae8f11398b50821e877e5a32c6addaccc699b",
+			"revisionTime": "2017-05-10T14:09:52Z"
+		},
+		{
+			"checksumSHA1": "GK75wizaAnKGJs1Nepky6sMCbiw=",
+			"path": "github.com/tdewolff/strconv",
+			"revision": "3e8091f4417ebaaa3910da63a45ea394ebbfb0e3",
+			"revisionTime": "2016-04-27T18:05:39Z"
+		},
+		{
+			"checksumSHA1": "4t38rpjTv5UgjxMMFKn4ad+DhU8=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "b90f89a1e7a9c1f6b918820b3daa7f08488c8594",
+			"revisionTime": "2017-05-29T13:44:53Z"
+		},
+		{
+			"checksumSHA1": "YFQU7VULoTU4TwPz3V97b2exyxE=",
+			"path": "gopkg.in/mgo.v2",
+			"revision": "3f83fa5005286a7fe593b055f0d7771a7dce4655",
+			"revisionTime": "2016-08-18T02:01:20Z"
+		},
+		{
+			"checksumSHA1": "Kpt9VvtG+deoQ+p34F2CeTofTik=",
+			"path": "gopkg.in/mgo.v2/bson",
+			"revision": "3f83fa5005286a7fe593b055f0d7771a7dce4655",
+			"revisionTime": "2016-08-18T02:01:20Z"
+		},
+		{
+			"checksumSHA1": "9tMleZvl/yjpkj7oO3pOfZc+MJw=",
+			"path": "gopkg.in/mgo.v2/internal/json",
+			"revision": "3f83fa5005286a7fe593b055f0d7771a7dce4655",
+			"revisionTime": "2016-08-18T02:01:20Z"
+		},
+		{
+			"checksumSHA1": "WnXjUmdgl3mTwwqYBxbO974iCe8=",
+			"path": "gopkg.in/mgo.v2/internal/sasl",
+			"revision": "3f83fa5005286a7fe593b055f0d7771a7dce4655",
+			"revisionTime": "2016-08-18T02:01:20Z"
+		},
+		{
+			"checksumSHA1": "CrciG7woshiINwZxPsxisgDGL3Y=",
+			"path": "gopkg.in/mgo.v2/internal/scram",
+			"revision": "3f83fa5005286a7fe593b055f0d7771a7dce4655",
+			"revisionTime": "2016-08-18T02:01:20Z"
+		}
+	],
+	"rootPath": "MediaServer"
+}
