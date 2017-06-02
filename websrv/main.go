@@ -2,119 +2,128 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"os/signal"
-	"sync"
+	"path/filepath"
 	"time"
-	
+
 	"MediaServer/websrv/file"
+	"MediaServer/websrv/interrupt"
 )
+
+type FileData []byte
+type FileDataTree map[string]*FileData
 
 // TODO
 type Station struct {
-
 }
+
+var (
+	registry *file.Registry
+	
+	// annoying to type, short for "sanitize"
+	san = filepath.Clean
+)
 
 //var stations = make(map[string]Station)
 
 func main() {
-	if err := file.WatchInit(); err != nil {
+	var err error
+
+	registry, err = file.NewRegistry("app")
+	if err != nil {
 		panic(err)
 	}
-	defer file.WatchStop()
-	
-	stop := make(chan bool)
-	
-	serverMux := http.NewServeMux()
-	serverMux.HandleFunc("/", handler("app/index.html", stop))
-	serveDir(serverMux, "/html/", stop)
-	serveDir(serverMux, "/css/", stop)
-	serveDir(serverMux, "/js/", stop)
-	
-	// TODO request path for a media file
-	// create request to the file db for the file.
-	// it responds with (hopefully) the file
-	// then we can stream that file!
-	
-	server := http.Server{
-		Addr: ":8080",
-		ReadTimeout: 10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		MaxHeaderBytes: 1 << 32,
-		Handler: serverMux,
+	defer registry.Close()
+
+	err = registry.Walk(nil)
+	if err != nil {
+		panic(err)
 	}
+
+	serverMux := http.NewServeMux()
 	
+	// basic server files!
+	serverMux.HandleFunc("/", customHandler(san("app/index.html"), "text/html"))
+	serverMux.HandleFunc("/css/", handler("text/css"))
+	serverMux.HandleFunc("/html/", handler("text/html"))
+	serverMux.HandleFunc("/js/", handler("text/javascript"))
+	
+	// images!
+	serverMux.HandleFunc("/img/png", handler("image/png"))
+	serverMux.HandleFunc("/img/svg", handler("image/svg+xml"))
+	
+	// favicon config crap (bless you, realfavicongenerator.net)
+	serverMux.HandleFunc("/browserconfig.xml", customHandler(san("app/browserconfig.xml"), "application/xml"))
+	serverMux.HandleFunc("/manifest.json", customHandler(san("app/manifest.json"), "application/json"))
+	
+	// actual favicon s
+	serverMux.HandleFunc("/android-chrome-192x192.png", customHandler(san("app/android-chrome-192x192.png"), "image/png"))
+	serverMux.HandleFunc("/android-chrome-512x512.png", customHandler(san("app/android-chrome-512x512.png"), "image/png"))
+	serverMux.HandleFunc("/apple-touch-icon.png", customHandler(san("app/apple-touch-icon.png"), "image/png"))
+	serverMux.HandleFunc("/favicon.ico", customHandler(san("app/favicon.ico"), "image/x-icon"))
+	serverMux.HandleFunc("/favicon.png", customHandler(san("app/favicon.png"), "image/png"))
+	serverMux.HandleFunc("/favicon-16x16.png", customHandler(san("app/favicon-16x16.png"), "image/png"))
+	serverMux.HandleFunc("/favicon-32x32.png", customHandler(san("app/favicon-32x32.png"), "image/png"))
+	serverMux.HandleFunc("/mstile-150x150.png", customHandler(san("app/mstile-150x150.png"), "image/png"))
+	serverMux.HandleFunc("/safari-pinned-tab.svg", customHandler(san("app/safari-pinned-tab.svg"), "image/svg"))
+	
+	// actually interesting stuff eventually
+	serverMux.HandleFunc("/media/", mediaHandler)
+	serverMux.HandleFunc("/station/", stationHandler)
+
+	server := http.Server{
+		Addr:           ":8080",
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 32,
+		Handler:        serverMux,
+	}
+
 	// listen for termination signal!
-	go func() {
-		interrupt := make(chan os.Signal)
-		signal.Notify(interrupt, os.Interrupt)
-		
-		// block until we get something
-		<-interrupt
-		fmt.Println("Caught SIGINT")
-		server.Close()
-		close(stop)
-	}()
-	
+	interrupt.OnExit(func() { server.Close() })
+
 	// hey now we can do what we want
 	fmt.Println("Serving...")
 	server.ListenAndServe()
 	fmt.Println("Done")
 }
 
-func handler(filename string, stop <-chan bool) func(http.ResponseWriter, *http.Request) {
-	event, err := file.Watch(filename, stop)
-	if err != nil {
-		panic(err)
-	}
-	
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		panic(err)
-	}
-	
-	// we don't want to potentially block a response longer than needed,
-	// so we gotta do file updates between requests.
-	// which means we gotta mutex up the data
-	mut := sync.Mutex{}
-	
-	// launch a goroutine which, on a good file watch event, updates ours data for this file
-	go func() {
-		for d := range event {
-			if d.Error != nil {
-				// on an error, log it, but don't terminate
-				// the data we already had (should) still be good
-				// so let's just stop watching the file
-				fmt.Println(d.Error)
-				return
-			} else {
-				mut.Lock()
-				data = d.Data
-				mut.Unlock()
-			}
-		}
-	}()
-	
+func customHandler(path string, mimeType string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		mut.Lock()
-		w.Write(data)
-		mut.Unlock()
+		defer r.Body.Close()
+
+		data := registry.Get(path)
+		if data != nil {
+			if mimeType != "" {
+				w.Header().Add("Content-Type", mimeType)
+			}
+
+			w.Write(data)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
 	}
 }
 
-// pick a directory, and setup handlers for all files in there!
-func serveDir(mux *http.ServeMux, dir string, stop <-chan bool) error {
-	files, err := ioutil.ReadDir("app" + dir)
-	if err != nil {
-		return err
+func handler(mimeType string) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := filepath.Join(registry.BasePath, r.URL.EscapedPath())
+		path = filepath.Clean(path)
+
+		data := registry.Get(path)
+		if data != nil {
+			w.Header().Add("Content-Type", mimeType)
+			w.Write(data)
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+		}
 	}
-	
-	for _, f := range files {
-		path := dir + f.Name()
-		mux.HandleFunc(path, handler("app" + path, stop))
-	}
-	
-	return nil
+}
+
+func mediaHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO request file from the database (POST)
+}
+
+func stationHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO return specified station (GET)
 }
