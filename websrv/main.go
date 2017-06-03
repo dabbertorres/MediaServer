@@ -19,7 +19,7 @@ type Station struct {
 
 var (
 	registry *file.Registry
-	
+
 	// annoying to type, short for "sanitize"
 	san = filepath.Clean
 )
@@ -41,21 +41,21 @@ func main() {
 	}
 
 	serverMux := http.NewServeMux()
-	
+
 	// basic server files!
-	serverMux.HandleFunc("/", customHandler(san("app/index.html"), "text/html"))
+	serverMux.HandleFunc("/", customHandler(san("app/html/index.html"), "text/html"))
 	serverMux.HandleFunc("/css/", handler("text/css"))
 	serverMux.HandleFunc("/html/", handler("text/html"))
 	serverMux.HandleFunc("/js/", handler("text/javascript"))
-	
+
 	// images!
 	serverMux.HandleFunc("/img/png", handler("image/png"))
 	serverMux.HandleFunc("/img/svg", handler("image/svg+xml"))
-	
+
 	// favicon config crap (bless you, realfavicongenerator.net)
 	serverMux.HandleFunc("/browserconfig.xml", customHandler(san("app/browserconfig.xml"), "application/xml"))
 	serverMux.HandleFunc("/manifest.json", customHandler(san("app/manifest.json"), "application/json"))
-	
+
 	// actual favicon s
 	serverMux.HandleFunc("/android-chrome-192x192.png", customHandler(san("app/android-chrome-192x192.png"), "image/png"))
 	serverMux.HandleFunc("/android-chrome-512x512.png", customHandler(san("app/android-chrome-512x512.png"), "image/png"))
@@ -66,7 +66,7 @@ func main() {
 	serverMux.HandleFunc("/favicon-32x32.png", customHandler(san("app/favicon-32x32.png"), "image/png"))
 	serverMux.HandleFunc("/mstile-150x150.png", customHandler(san("app/mstile-150x150.png"), "image/png"))
 	serverMux.HandleFunc("/safari-pinned-tab.svg", customHandler(san("app/safari-pinned-tab.svg"), "image/svg"))
-	
+
 	// actually interesting stuff eventually
 	serverMux.HandleFunc("/media/", mediaHandler)
 	serverMux.HandleFunc("/station/", stationHandler)
