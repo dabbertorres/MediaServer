@@ -57,15 +57,15 @@ func main() {
 	serverMux.HandleFunc("/manifest.json", customHandler(san("app/manifest.json"), "application/json"))
 
 	// actual favicon s
-	serverMux.HandleFunc("/android-chrome-192x192.png", customHandler(san("app/android-chrome-192x192.png"), "image/png"))
-	serverMux.HandleFunc("/android-chrome-512x512.png", customHandler(san("app/android-chrome-512x512.png"), "image/png"))
-	serverMux.HandleFunc("/apple-touch-icon.png", customHandler(san("app/apple-touch-icon.png"), "image/png"))
-	serverMux.HandleFunc("/favicon.ico", customHandler(san("app/favicon.ico"), "image/x-icon"))
-	serverMux.HandleFunc("/favicon.png", customHandler(san("app/favicon.png"), "image/png"))
-	serverMux.HandleFunc("/favicon-16x16.png", customHandler(san("app/favicon-16x16.png"), "image/png"))
-	serverMux.HandleFunc("/favicon-32x32.png", customHandler(san("app/favicon-32x32.png"), "image/png"))
-	serverMux.HandleFunc("/mstile-150x150.png", customHandler(san("app/mstile-150x150.png"), "image/png"))
-	serverMux.HandleFunc("/safari-pinned-tab.svg", customHandler(san("app/safari-pinned-tab.svg"), "image/svg"))
+	serverMux.HandleFunc("/android-chrome-192x192.png", customHandler(san("app/img/favicon/android-chrome-192x192.png"), "image/png"))
+	serverMux.HandleFunc("/android-chrome-512x512.png", customHandler(san("app/img/favicon/android-chrome-512x512.png"), "image/png"))
+	serverMux.HandleFunc("/apple-touch-icon.png", customHandler(san("app/img/favicon/apple-touch-icon.png"), "image/png"))
+	serverMux.HandleFunc("/favicon.ico", customHandler(san("app/img/favicon/favicon.ico"), "image/x-icon"))
+	serverMux.HandleFunc("/favicon.png", customHandler(san("app/img/favicon/favicon.png"), "image/png"))
+	serverMux.HandleFunc("/favicon-16x16.png", customHandler(san("app/img/favicon/favicon-16x16.png"), "image/png"))
+	serverMux.HandleFunc("/favicon-32x32.png", customHandler(san("app/img/favicon/favicon-32x32.png"), "image/png"))
+	serverMux.HandleFunc("/mstile-150x150.png", customHandler(san("app/img/favicon/mstile-150x150.png"), "image/png"))
+	serverMux.HandleFunc("/safari-pinned-tab.svg", customHandler(san("app/img/favicon/safari-pinned-tab.svg"), "image/svg"))
 
 	// actually interesting stuff eventually
 	serverMux.HandleFunc("/media/", mediaHandler)
