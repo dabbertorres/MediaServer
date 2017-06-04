@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  web-server:
+    build: ./websrv
+    ports:
+      - "80:8080"
+    networks:
+      - media
+  
+  db:
+    build: ./filedb
+    networks:
+      media:
+        aliases:
+          - database
+    
+    volumes:
+      - type: volume
+        source: ~/database-data
+        target: /app/db-data
+        
+      - type: bind
+        source: ~/media
+        target: /app/media
+
+networks:
+  media:
