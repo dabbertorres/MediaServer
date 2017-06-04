@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -10,21 +11,12 @@ import (
 	"MediaServer/websrv/interrupt"
 )
 
-type FileData []byte
-type FileDataTree map[string]*FileData
-
-// TODO
-type Station struct {
-}
-
 var (
 	registry *file.Registry
 
 	// annoying to type, short for "sanitize"
 	san = filepath.Clean
 )
-
-//var stations = make(map[string]Station)
 
 func main() {
 	var err error
@@ -84,8 +76,12 @@ func main() {
 
 	// hey now we can do what we want
 	fmt.Println("Serving...")
-	server.ListenAndServe()
-	fmt.Println("Done")
+	err = server.ListenAndServe()
+	if err == http.ErrServerClosed {
+		fmt.Println("Done")
+	} else {
+		log.Println("Server shutdown unexpectedly:", err)
+	}
 }
 
 func customHandler(path string, mimeType string) func(http.ResponseWriter, *http.Request) {

@@ -82,9 +82,14 @@ func (reg *Registry) Walk(ignore filepath.WalkFunc) error {
 
 func (reg *Registry) Get(file string) []byte {
 	reg.filesMutex.RLock()
-	ret := *reg.files[file]
-	reg.filesMutex.RUnlock()
-	return ret
+	defer reg.filesMutex.RUnlock()
+
+	ret := reg.files[file]
+	if ret == nil {
+		return nil
+	} else {
+		return *ret
+	}
 }
 
 func (reg *Registry) set(file string, data []byte) {
@@ -94,8 +99,8 @@ func (reg *Registry) set(file string, data []byte) {
 }
 
 func (reg *Registry) add(path string, info os.FileInfo, err error) error {
-	// not interested in directories
-	if info.IsDir() {
+	// not interested in directories or hidden files
+	if info.IsDir() || info.Name()[0] == '.' {
 		return nil
 	}
 
@@ -129,11 +134,12 @@ func (reg *Registry) watch() {
 				}
 			}
 
-			if is(ev.Op, fsnotify.Write) {
+			if is(ev.Op, fsnotify.Write) || is(ev.Op, fsnotify.Rename) {
 				data, err := ioutil.ReadFile(ev.Name)
 				if err == nil {
-					url, _ := filepath.Rel(reg.BasePath, ev.Name)
-					reg.set(url, data)
+					log.Printf("Reloading '%s'\n", ev.Name)
+					path, _ := filepath.Rel(reg.BasePath, ev.Name)
+					reg.set(path, data)
 				} else {
 					log.Printf("Error (%s) reading modified file '%s' - no longer watching.\n", err, ev.Name)
 					reg.watcher.Remove(ev.Name)
