@@ -11,10 +11,6 @@
 			"versionExact": "v1.4.2"
 		},
 		{
-			"path": "github.com/go-mgo/mgo=v2",
-			"revision": ""
-		},
-		{
 			"checksumSHA1": "lKZSGeo3VJM52P07QKQClBEd//k=",
 			"path": "github.com/tdewolff/buffer",
 			"revision": "df6253e2a2cda5aba1b5d0c59fc5bdf0a98ae192",
