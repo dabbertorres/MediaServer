@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"MediaServer/internal/interrupt"
 	"MediaServer/websrv/file"
-	"MediaServer/websrv/interrupt"
 )
 
 var (
