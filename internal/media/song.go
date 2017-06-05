@@ -13,9 +13,11 @@ type SongInfo struct {
 	Length time.Duration `json:"length"`
 }
 
+type SongData []byte
+
 type Song struct {
 	SongInfo
-	data []byte
+	data SongData
 }
 
 // NextChunk returns a data slice, and the amount of bytes left total,
