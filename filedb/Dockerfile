@@ -1,4 +1,4 @@
-FROM mongo
+FROM mariadb
 
 COPY filedb /app/
 
