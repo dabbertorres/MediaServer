@@ -5,5 +5,4 @@ import (
 )
 
 type Request media.SongInfo
-
-type ResponseData media.SongData
+type Response media.SongData

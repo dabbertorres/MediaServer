@@ -10,13 +10,13 @@ type SongInfo struct {
 	Title  string        `json:"title"`
 	Artist string        `json:"artist"`
 	Album  string        `json:"album"`
-	Length time.Duration `json:"length"`
+	//Length time.Duration `json:"length"`
 }
 
 type SongData []byte
 
 type Song struct {
-	SongInfo
+	Info SongInfo
 	data SongData
 }
 

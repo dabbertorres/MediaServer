@@ -16,4 +16,4 @@ const (
 
 type Request map[Type]string
 
-type Result []media.SongInfo
+type Response []media.SongInfo
