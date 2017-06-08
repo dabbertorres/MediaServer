@@ -11,7 +11,6 @@ import (
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {
 	data, _ := ioutil.ReadAll(r.Body)
-	r.Body.Close()
 
 	searchParams := search.Request{}
 	if err := json.Unmarshal(data, &searchParams); err != nil {
@@ -20,7 +19,6 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
 }
 
 func streamHandler(w http.ResponseWriter, r *http.Request) {
