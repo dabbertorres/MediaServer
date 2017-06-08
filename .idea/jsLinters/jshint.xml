@@ -8,7 +8,7 @@
     <option browserify="false" />
     <option camelcase="false" />
     <option couch="false" />
-    <option curly="true" />
+    <option curly="false" />
     <option debug="false" />
     <option devel="false" />
     <option dojo="false" />
@@ -17,9 +17,9 @@
     <option eqeqeq="true" />
     <option eqnull="true" />
     <option es3="false" />
-    <option es5="true" />
+    <option es5="false" />
     <option esnext="false" />
-    <option esversion="5" />
+    <option esversion="6" />
     <option evil="false" />
     <option expr="false" />
     <option forin="true" />
@@ -39,7 +39,7 @@
     <option loopfunc="false" />
     <option maxerr="50" />
     <option mocha="false" />
-    <option module="false" />
+    <option module="true" />
     <option mootools="false" />
     <option moz="false" />
     <option multistr="false" />

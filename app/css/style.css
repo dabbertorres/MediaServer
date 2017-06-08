@@ -1,3 +1,56 @@
-/* custom */
+.radio-footer
+{
+    height: 4vh;
+    width: 100%;
+    padding: 0;
 
+    box-shadow:
+        0 -1px 2px 0 rgba(0, 0, 0, 0.14),
+        0 -2px 1px 1px rgba(0, 0, 0, 0.08),
+        0 -1px 5px 0 rgba(0, 0, 0, 0.12);
+}
 
+.song-progress-bar
+{
+    top: 0;
+    left: 0;
+    width: inherit;
+    height: 3px;
+
+    -webkit-transform-origin: 0 0;
+    -moz-transform-origin: 0 0;
+    -ms-transform-origin: 0 0;
+    -o-transform-origin: 0 0;
+    transform-origin: 0 0;
+}
+
+.volume-controls-wrapper
+{
+    height: 50%;
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.volume-controls-wrapper > label
+{
+    float: left;
+    vertical-align: middle;
+}
+
+/* MDL turns my <input> slider into a bunch of divs. */
+.volume-controls-wrapper > div
+{
+    float: right;
+    vertical-align: middle;
+}
+
+.main-area
+{
+    margin: 0;
+}
+
+.panel
+{
+    width: 48%;
+}
