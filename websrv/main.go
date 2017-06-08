@@ -48,7 +48,7 @@ func main() {
 	serverMux.HandleFunc("/browserconfig.xml", customHandler(san("app/browserconfig.xml"), "application/xml"))
 	serverMux.HandleFunc("/manifest.json", customHandler(san("app/manifest.json"), "application/json"))
 
-	// actual favicon s
+	// actual favicons
 	serverMux.HandleFunc("/android-chrome-192x192.png", customHandler(san("app/img/favicon/android-chrome-192x192.png"), "image/png"))
 	serverMux.HandleFunc("/android-chrome-512x512.png", customHandler(san("app/img/favicon/android-chrome-512x512.png"), "image/png"))
 	serverMux.HandleFunc("/apple-touch-icon.png", customHandler(san("app/img/favicon/apple-touch-icon.png"), "image/png"))
@@ -62,6 +62,7 @@ func main() {
 	// actually interesting stuff eventually
 	serverMux.HandleFunc("/media/", mediaHandler)
 	serverMux.HandleFunc("/station/", stationHandler)
+	serverMux.HandleFunc("/search/", searchHandler)
 
 	server := http.Server{
 		Addr:           ":8080",
@@ -117,9 +118,13 @@ func handler(mimeType string) func(http.ResponseWriter, *http.Request) {
 }
 
 func mediaHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO request file from the database (POST)
+	// TODO request file from the database
 }
 
 func stationHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO return specified station (GET)
+	// TODO return specified station
+}
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO return results for specified search parameters
 }
