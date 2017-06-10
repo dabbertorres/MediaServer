@@ -41,7 +41,7 @@ func main() {
 }
 
 func openDB() *sql.DB {
-	db, err := sql.Open("mysql", "filedb@/media")
+	db, err := sql.Open("mysql", "filedb@/songs")
 	if err != nil {
 		panic(err)
 	}
