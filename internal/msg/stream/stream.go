@@ -1,8 +1,8 @@
 package stream
 
 import (
-	"MediaServer/internal/media"
+	"MediaServer/internal/song"
 )
 
-type Request media.SongInfo
-type Response media.SongData
+type Request song.Info
+type Response song.Data

@@ -1,19 +1,15 @@
 package search
 
 import (
-	"MediaServer/internal/media"
+	"MediaServer/internal/song"
 )
 
-type Type string
+type Request struct {
+	Title  string `json:"title,omitempty"`
+	Album  string `json:"album,omitempty"`
+	Artist string `json:"artist,omitempty"`
+	Genre  string `json:"genre,omitempty"`
+	Any    string `json:"any,omitempty"`
+}
 
-const (
-	Title  Type = "title"
-	Album  Type = "album"
-	Artist Type = "artist"
-	Genre  Type = "genre"
-	Any    Type = "any"
-)
-
-type Request map[Type]string
-
-type Response []media.SongInfo
+type Response []song.Info
