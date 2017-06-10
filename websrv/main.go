@@ -9,6 +9,7 @@ import (
 
 	"MediaServer/internal/interrupt"
 	"MediaServer/websrv/file"
+	"MediaServer/urlgen"
 )
 
 var (
@@ -19,6 +20,8 @@ var (
 )
 
 func main() {
+	log.SetFlags(log.Llongfile | log.LstdFlags)
+	
 	var err error
 
 	registry, err = file.NewRegistry("app")
@@ -28,6 +31,11 @@ func main() {
 	defer registry.Close()
 
 	err = registry.Walk(nil)
+	if err != nil {
+		panic(err)
+	}
+	
+	err = urlgen.Load()
 	if err != nil {
 		panic(err)
 	}
@@ -60,7 +68,7 @@ func main() {
 	serverMux.HandleFunc("/safari-pinned-tab.svg", customHandler(san("app/img/favicon/safari-pinned-tab.svg"), "image/svg"))
 
 	// actually interesting stuff eventually
-	serverMux.HandleFunc("/media/", mediaHandler)
+	serverMux.HandleFunc("/song/", songHandler)
 	serverMux.HandleFunc("/station/", stationHandler)
 	serverMux.HandleFunc("/search/", searchHandler)
 
@@ -117,8 +125,11 @@ func handler(mimeType string) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func mediaHandler(w http.ResponseWriter, r *http.Request) {
+func songHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO request file from the database
+	
+	w.Header().Add("Accept-Ranges", "bytes")
+	w.WriteHeader(http.StatusPartialContent)
 }
 
 func stationHandler(w http.ResponseWriter, r *http.Request) {
