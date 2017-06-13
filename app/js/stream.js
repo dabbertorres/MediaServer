@@ -6,7 +6,7 @@ let setIcon = function(muted)
     const off = "volume_off";
 
     document.getElementById("volumeIcon")
-        .textContent = muted ? on : off;
+        .textContent = muted ? off : on;
 };
 
 function stream(url, format, startTime)
