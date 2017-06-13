@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en" type="text/css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue_grey-red.min.css">
+    <link rel="stylesheet" href="/css/style.css">
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 </head>
 
@@ -56,7 +57,7 @@
                 <ul class="mdl-list">
                     <!-- TODO need to fill this list dynamically, with JavaScript! -->
                     <!-- golang template! -->
-                    {{ range $index, $song := . }}
+                    {{ range $index, $song := .Playlist }}
                     <li class="mdl-list__item mdl-list__item--three-line">
                         <span class="mdl-list__item-primary-content">
                             {{ $song.Title }}
@@ -79,16 +80,16 @@
                 <ul class="mdl-list">
                     <!-- TODO need to append to this dynamically, with JavaScript! -->
                     <!-- golang template! -->
-                    {{ range $index, $message := . }}
+                    <!-- range $index, $message := . -->
                     <li class="mdl-list__item mdl-list__item--two-line">
                         <span class="mdl-list__item-primary-content">
-                            <h5>{{ $message.Name }}</h5>
+                            <!--<h5> $message.Name </h5>-->
                         </span>
                         <span class="mdl-list__item-secondary-content">
-                            <p>{{ $message.Message }}</p>
+                            <!--<p> $message.Message </p>-->
                         </span>
                     </li>
-                    {{ end }}
+                    <!-- end -->
                 </ul>
             </div>
         </div>
