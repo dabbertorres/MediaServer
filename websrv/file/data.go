@@ -93,8 +93,13 @@ func (reg *Registry) Get(file string) []byte {
 }
 
 func (reg *Registry) set(file string, data []byte) {
+	// ensure we have a top level directory character
+	if file[0] != '/' {
+		file = "/" + file
+	}
+	
 	reg.filesMutex.Lock()
-	reg.files[file] = &data
+	reg.files[filepath.ToSlash(file)] = &data
 	reg.filesMutex.Unlock()
 }
 
@@ -111,6 +116,9 @@ func (reg *Registry) add(path string, info os.FileInfo, err error) error {
 	}
 
 	reg.watcher.Add(path)
+	
+	// map the file path relative to the Base path for ease of use
+	path, _ = filepath.Rel(reg.BasePath, path)
 	reg.set(path, data)
 
 	return nil
