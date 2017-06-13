@@ -28,7 +28,7 @@ type Data struct {
 
 func (m Data) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		return json.UnmarshalTypeError{
+		return &json.UnmarshalTypeError{
 			Value:  "null",
 			Type:   reflect.TypeOf((*Type)(nil)),
 			Offset: 0,
@@ -44,7 +44,7 @@ func (m Data) UnmarshalJSON(data []byte) error {
 	}
 
 	if m.Type < TypeChat || m.Type > TypeStatus {
-		return json.UnmarshalTypeError{
+		return &json.UnmarshalTypeError{
 			Value:  string(m.Type),
 			Type:   reflect.TypeOf((*Type)(nil)),
 			Struct: "websrv.msg.Data",

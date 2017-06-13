@@ -32,7 +32,7 @@ type PlaylistMessage struct {
 
 func (pm PlaylistMessage) UnmarshalJSON(data []byte) error {
 	if string(data) == "null" {
-		return json.UnmarshalTypeError{
+		return &json.UnmarshalTypeError{
 			Value:  "null",
 			Type:   reflect.TypeOf((*PlaylistMethod)(nil)),
 			Offset: 0,
@@ -48,7 +48,7 @@ func (pm PlaylistMessage) UnmarshalJSON(data []byte) error {
 	}
 	
 	if pm.Method < MethodAppend || pm.Method > MethodUpdate {
-		return json.UnmarshalTypeError{
+		return &json.UnmarshalTypeError{
 			Value:  string(pm.Method),
 			Type:   reflect.TypeOf((*PlaylistMethod)(nil)),
 			Struct: "websrv.msg.PlaylistMessage",
