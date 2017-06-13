@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	disconnecting = errors.New("Client disconnecting")
+	Disconnecting = errors.New("Client disconnecting")
 )
 
 type Connection struct {
@@ -45,7 +45,7 @@ func (conn *Connection) Work(ws *websocket.Conn) {
 			}
 			
 			err := conn.handle(true, raw.Data, ws)
-			if err == disconnecting {
+			if err == Disconnecting {
 				log.Println(err)
 				return
 			} else if err != nil {
@@ -97,7 +97,7 @@ func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) 
 		if fromClient {
 			conn.Out <- m
 			if m.Status.Disconnected {
-				return disconnecting
+				return Disconnecting
 			}
 		} else {
 			// let client know who disconnected
