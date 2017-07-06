@@ -17,7 +17,7 @@ func loadTemplates() {
 			log.Printf("Template page file '%s' not found!\n", path)
 			continue
 		}
-		
+
 		templatePages[path] = LoadPage(data)
 	}
 }

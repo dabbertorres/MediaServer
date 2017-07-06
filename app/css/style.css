@@ -45,12 +45,41 @@
     vertical-align: middle;
 }
 
+main
+{
+    height: 100%;
+}
+
 .main-area
 {
     margin: 0;
+    height: 100%;
 }
 
 .panel
 {
     width: 48%;
+    max-height: 100%;
+    border-collapse: collapse;
+    overflow-y: scroll;
+
+    /* hidden scrollbars, but we can scroll still! (firefox, IE/Edge) */
+    -moz-overflow: none;
+    -ms-overflow: none;
+}
+
+/* hidden scrollbars, but we can scroll still! (webkit browsers) */
+::-webkit-scrollbar
+{
+    display: none;
+}
+
+.left-panel
+{
+    border-right: solid 1px #616161;
+}
+
+.right-panel
+{
+    border-left: solid 1px #616161;
 }

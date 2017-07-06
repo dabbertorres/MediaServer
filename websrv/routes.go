@@ -34,6 +34,7 @@ var routes = map[string]HandleFunc{
 	"/song/":    songHandler,
 	"/station/": stationHandler,
 	"/search/":  searchHandler,
+	"/socket/": socketHandler,
 }
 
 func makeMuxer() *http.ServeMux {

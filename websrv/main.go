@@ -21,7 +21,7 @@ const (
 var (
 	registry *file.Registry
 
-	liveStations = map[string]station.Data{}
+	liveStations = map[string]*station.Data{}
 
 	// annoying to type, short for "sanitize"
 	san = filepath.Clean
@@ -47,7 +47,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	loadTemplates()
 
 	server := http.Server{

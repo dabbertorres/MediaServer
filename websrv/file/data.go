@@ -97,7 +97,7 @@ func (reg *Registry) set(file string, data []byte) {
 	if file[0] != '/' {
 		file = "/" + file
 	}
-	
+
 	reg.filesMutex.Lock()
 	reg.files[filepath.ToSlash(file)] = &data
 	reg.filesMutex.Unlock()
@@ -116,7 +116,7 @@ func (reg *Registry) add(path string, info os.FileInfo, err error) error {
 	}
 
 	reg.watcher.Add(path)
-	
+
 	// map the file path relative to the Base path for ease of use
 	path, _ = filepath.Rel(reg.BasePath, path)
 	reg.set(path, data)

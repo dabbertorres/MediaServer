@@ -1,10 +1,10 @@
 package station
 
 import (
-	"github.com/gorilla/websocket"
 	"MediaServer/websrv/msg"
-	"log"
 	"errors"
+	"github.com/gorilla/websocket"
+	"log"
 )
 
 var (
@@ -13,20 +13,20 @@ var (
 
 type Connection struct {
 	Name string
-	In chan msg.Data
-	Out chan<- msg.Data
+	In   chan msg.Data
+	Out  chan<- msg.Data
 }
 
-func (conn *Connection) Work(ws *websocket.Conn) {
+func (conn *Connection) Work(ws *websocket.Conn, data *Data) {
 	defer ws.Close()
-	
+
 	// workaround for websocket.Conn not having a message reading channel!
 	type WsMsg struct {
 		msg.Data
 		Error error
 	}
 	wsMsg := make(chan WsMsg)
-	
+
 	go func() {
 		for {
 			m := msg.Data{}
@@ -35,15 +35,38 @@ func (conn *Connection) Work(ws *websocket.Conn) {
 		}
 	}()
 	
+	// TODO TEST
+	for i := 0; i < 40; i++ {
+		ws.WriteJSON(&msg.Data{
+			Type: msg.TypeChat,
+			Chat: &msg.ChatMessage{
+				From:    "Server",
+				Content: "Hello, World!",
+			},
+		})
+	}
+	// TODO TEST
+	
+	// provide client with the current playlist
+	data.lock.RLock()
+	ws.WriteJSON(&msg.Data{
+		Type: msg.TypePlaylist,
+		Playlist: &msg.PlaylistMessage{
+			Method: msg.MethodUpdate,
+			Update: (*msg.PlaylistUpdate)(&data.Playlist),
+		},
+	})
+	data.lock.RUnlock()
+
 	for {
 		select {
 		// messages from the client
 		case raw := <-wsMsg:
-			if raw.Error != nil && !websocket.IsUnexpectedCloseError(raw.Error, websocket.CloseGoingAway) {
+			if raw.Error != nil && websocket.IsUnexpectedCloseError(raw.Error, websocket.CloseGoingAway) {
 				log.Println("WebSocket error:", raw.Error)
 				return
 			}
-			
+
 			err := conn.handle(true, raw.Data, ws)
 			if err == Disconnecting {
 				log.Println(err)
@@ -52,7 +75,7 @@ func (conn *Connection) Work(ws *websocket.Conn) {
 				log.Println("Message error:", err)
 				return
 			}
-			
+
 		// messages from the server/station
 		case m := <-conn.In:
 			err := conn.handle(false, m, ws)
@@ -76,13 +99,13 @@ func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) 
 				return err
 			}
 		}
-	
+
 	case msg.TypeStream:
 		if fromClient {
 			conn.Out <- m
 		} else {
 		}
-	
+
 	case msg.TypePlaylist:
 		if fromClient {
 			conn.Out <- m
@@ -92,7 +115,7 @@ func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) 
 				log.Println("PlaylistMessage (Server) error:", err)
 			}
 		}
-	
+
 	case msg.TypeStatus:
 		if fromClient {
 			conn.Out <- m
@@ -104,7 +127,7 @@ func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) 
 			err := ws.WriteJSON(&msg.Data{
 				Type: msg.TypeChat,
 				Chat: &msg.ChatMessage{
-					From: "Station",
+					From:    "Station",
 					Content: m.Status.From + " disconnected.",
 				},
 			})
@@ -114,6 +137,6 @@ func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) 
 			}
 		}
 	}
-	
+
 	return nil
 }

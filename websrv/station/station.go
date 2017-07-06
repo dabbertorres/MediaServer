@@ -3,6 +3,7 @@ package station
 import (
 	"log"
 	"net/http"
+	"sync"
 
 	"MediaServer/internal/song"
 	"MediaServer/websrv/msg"
@@ -12,19 +13,35 @@ import (
 type Data struct {
 	Name        string      `json:"name"`
 	Playlist    []song.Info `json:"playlist"`
+	lock        sync.RWMutex
 	connections []Connection
 	broadcast   chan msg.Data
 }
 
-func New(w http.ResponseWriter, r *http.Request) Data {
-	// TODO read station name from request json
-	// Also maybe make .Name == .Url
-	ret := Data{
-		Name:      "Station",
-		broadcast: make(chan msg.Data, 10),
+func New(name string) *Data {
+	const (
+		basePlaylistCapacity = 32
+		broadcastBufferSize = 16
+	)
+	
+	ret := &Data{
+		Name:      name,
+		Playlist: make([]song.Info, 0, basePlaylistCapacity),
+		broadcast: make(chan msg.Data, broadcastBufferSize),
 	}
+	
+	// TODO TEST
+	for i := 0; i < 40; i++ {
+		ret.Playlist = append(ret.Playlist, song.Info{
+			Artist: "Dead Sara",
+			Album:  "Pleasure to Meet You",
+			Title:  "Radio One Two",
+			Length: 3*60 + 41,
+		})
+	}
+	// TODO TEST
 
-	// TODO launch a goroutine for handling station-wide messages
+	go work(ret)
 
 	return ret
 }
@@ -43,5 +60,9 @@ func (d *Data) Add(w http.ResponseWriter, r *http.Request) {
 		Out:  d.broadcast,
 	})
 
-	go d.connections[len(d.connections)-1].Work(ws)
+	go d.connections[len(d.connections)-1].Work(ws, d)
+}
+
+func work(data *Data) {
+
 }

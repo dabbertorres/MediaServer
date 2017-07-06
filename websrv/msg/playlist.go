@@ -1,10 +1,10 @@
 package msg
 
 import (
+	"MediaServer/internal/song"
+	"bytes"
 	"encoding/json"
 	"reflect"
-	"bytes"
-	"MediaServer/internal/song"
 )
 
 type PlaylistMethod int
@@ -15,14 +15,14 @@ const (
 	MethodPrepend
 	MethodRemove
 	MethodReorder
-	
+
 	// from server
 	MethodUpdate
 )
 
 type PlaylistMessage struct {
 	Method PlaylistMethod `json:"method"`
-	
+
 	Append  *PlaylistAppend  `json:"append,omitempty"`
 	Prepend *PlaylistPrepend `json:"prepend,omitempty"`
 	Remove  *PlaylistRemove  `json:"remove,omitempty"`
@@ -40,13 +40,13 @@ func (pm PlaylistMessage) UnmarshalJSON(data []byte) error {
 			Field:  "Method",
 		}
 	}
-	
+
 	dec := json.NewDecoder(bytes.NewReader(data))
-	
+
 	if err := dec.Decode(&pm.Method); err != nil {
 		return err
 	}
-	
+
 	if pm.Method < MethodAppend || pm.Method > MethodUpdate {
 		return &json.UnmarshalTypeError{
 			Value:  string(pm.Method),
@@ -55,34 +55,34 @@ func (pm PlaylistMessage) UnmarshalJSON(data []byte) error {
 			Field:  "Method",
 		}
 	}
-	
+
 	var iv interface{}
 	switch pm.Method {
 	case MethodAppend:
 		pm.Append = &PlaylistAppend{}
 		iv = pm.Append
-	
+
 	case MethodPrepend:
 		pm.Prepend = &PlaylistPrepend{}
 		iv = pm.Prepend
-	
+
 	case MethodRemove:
 		pm.Remove = &PlaylistRemove{}
 		iv = pm.Remove
-	
+
 	case MethodReorder:
 		pm.Reorder = &PlaylistReorder{}
 		iv = pm.Reorder
-	
+
 	case MethodUpdate:
 		pm.Update = &PlaylistUpdate{}
 		iv = pm.Update
 	}
-	
+
 	if err := dec.Decode(iv); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 

@@ -21,7 +21,7 @@ const (
 var (
 	// use our rand.Rand so we don't disturb a calling program potentially using the rand package
 	rng *rand.Rand
-	
+
 	adjectives []string
 	animals    []string
 	adverbs    []string
@@ -109,7 +109,7 @@ func LoadDir(dir string) error {
 	if err := fill(&verbs, filepath.Join(dir, verbsFilename)); err != nil {
 		return err
 	}
-	
+
 	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	return nil
