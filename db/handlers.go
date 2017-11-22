@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"MediaServer/internal/msg/search"
+	"radio/internal/msg/search"
 )
 
 func searchHandler(w http.ResponseWriter, r *http.Request) {

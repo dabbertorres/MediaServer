@@ -1,10 +1,11 @@
 package msg
 
 import (
-	"MediaServer/internal/song"
 	"bytes"
 	"encoding/json"
 	"reflect"
+    
+	"radio/internal/song"
 )
 
 type PlaylistMethod int

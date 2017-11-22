@@ -1,14 +1,16 @@
 package station
 
 import (
-	"MediaServer/websrv/msg"
 	"errors"
-	"github.com/gorilla/websocket"
 	"log"
+ 
+	"github.com/gorilla/websocket"
+ 
+	"radio/websrv/msg"
 )
 
 var (
-	Disconnecting = errors.New("Client disconnecting")
+	Disconnecting = errors.New("client disconnecting")
 )
 
 type Connection struct {

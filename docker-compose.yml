@@ -1,28 +1,35 @@
-version: '3'
+version: '3.2'
 
 services:
   web-server:
     build: ./websrv
+    restart: always
+    depends_on:
+      - db
     ports:
       - "80:8080"
     networks:
-      - media
-  
+      - radio
+    volumes:
+      - type: bind
+        source: ./app
+        target: /app/app
+
   db:
-    build: ./filedb
+    image: mysql:5.7
+    restart: always
+    env_file: ./filedb/db.env
     networks:
-      media:
+      radio:
         aliases:
           - database
-    
     volumes:
       - type: volume
-        source: ~/database-data
-        target: /app/db-data
-        
-      - type: bind
-        source: ~/media
-        target: /app/media
+        source: database-data
+        target: /var/lib/mysql
 
 networks:
-  media:
+  radio:
+
+volumes:
+  database-data:

@@ -1,16 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"path/filepath"
 	"time"
 
-	"MediaServer/internal/interrupt"
-	"MediaServer/urlgen"
-	"MediaServer/websrv/file"
-	"MediaServer/websrv/station"
+	"radio/internal/interrupt"
+	"radio/urlgen"
+	"radio/websrv/file"
+	"radio/websrv/station"
+	"context"
 )
 
 const (
@@ -57,15 +57,26 @@ func main() {
 		MaxHeaderBytes: 1 << 32,
 		Handler:        makeMuxer(),
 	}
+	
+	waitShutdown := make(chan bool)
 
-	// listen for termination signal!
-	interrupt.OnExit(func() { server.Close() })
+	// listen for termination signal
+	interrupt.OnExit(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30 * time.Second)
+		defer cancel()
+		err := server.Shutdown(ctx)
+		if err != nil {
+			log.Println("Server shutdown error:", err)
+		}
+		waitShutdown <- true
+	})
 
 	// hey now we can do what we want
-	fmt.Println("Serving...")
+	log.Println("Serving...")
 	err = server.ListenAndServe()
+	<-waitShutdown
 	if err == http.ErrServerClosed {
-		fmt.Println("Done")
+		log.Println("Done")
 	} else {
 		log.Println("Server shutdown unexpectedly:", err)
 	}

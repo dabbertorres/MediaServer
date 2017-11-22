@@ -4,10 +4,11 @@ import (
 	"log"
 	"net/http"
 	"sync"
-
-	"MediaServer/internal/song"
-	"MediaServer/websrv/msg"
+    
 	"github.com/gorilla/websocket"
+
+	"radio/internal/song"
+	"radio/websrv/msg"
 )
 
 type Data struct {

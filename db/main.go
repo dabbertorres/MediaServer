@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"MediaServer/internal/connect"
-	"MediaServer/internal/interrupt"
+	"radio/internal/connect"
+	"radio/internal/interrupt"
 	_ "github.com/go-sql-driver/mysql"
 )
 

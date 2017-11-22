@@ -1,11 +1,12 @@
 package main
 
 import (
-	"MediaServer/urlgen"
-	"MediaServer/websrv/station"
 	"log"
 	"net/http"
 	"path"
+    
+	"radio/urlgen"
+	"radio/websrv/station"
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {

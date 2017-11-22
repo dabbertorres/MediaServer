@@ -3,10 +3,6 @@
 	"ignore": "test",
 	"package": [
 		{
-			"path": "appengine/cloudsql",
-			"revision": ""
-		},
-		{
 			"checksumSHA1": "+CZksICKER5UbZ3u3DpixZJ8CBg=",
 			"path": "github.com/fsnotify/fsnotify",
 			"revision": "629574ca2a5df945712d3079857300b5e4da0236",
@@ -55,5 +51,5 @@
 			"revisionTime": "2017-05-29T13:44:53Z"
 		}
 	],
-	"rootPath": "MediaServer"
+	"rootPath": "radio"
 }

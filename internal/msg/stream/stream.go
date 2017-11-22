@@ -1,7 +1,7 @@
 package stream
 
 import (
-	"MediaServer/internal/song"
+	"radio/internal/song"
 )
 
 type Request song.Info

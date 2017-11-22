@@ -1,7 +1,7 @@
 package search
 
 import (
-	"MediaServer/internal/song"
+	"radio/internal/song"
 )
 
 type Request struct {

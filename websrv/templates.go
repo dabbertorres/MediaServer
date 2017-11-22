@@ -18,7 +18,13 @@ func loadTemplates() {
 			continue
 		}
 
-		templatePages[path] = LoadPage(data)
+		p, err := LoadPage(data)
+		if err != nil {
+			log.Printf("Error loading Page '%s': %v\n", path, err)
+			continue
+		}
+		
+		templatePages[path] = p
 	}
 }
 
@@ -27,11 +33,12 @@ type Page struct {
 	length   int
 }
 
-func LoadPage(data []byte) Page {
+func LoadPage(data []byte) (Page, error) {
+	tmpl, err := template.New("page").Parse(string(data))
 	return Page{
-		template: template.Must(template.New("page").Parse(string(data))),
+		template: tmpl,
 		length:   len(data),
-	}
+	}, err
 }
 
 func (p Page) Generate(data interface{}) ([]byte, error) {
