@@ -1,4 +1,4 @@
-package main
+package websrv
 
 import (
 	"bytes"
@@ -23,7 +23,7 @@ func loadTemplates() {
 			log.Printf("Error loading Page '%s': %v\n", path, err)
 			continue
 		}
-		
+
 		templatePages[path] = p
 	}
 }

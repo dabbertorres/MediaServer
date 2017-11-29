@@ -1,7 +1,6 @@
 package file
 
 import (
-	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,9 +10,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-var (
-	SkipFile = errors.New("")
-)
+type IgnoreFunc func(path string, info os.FileInfo) bool
 
 type DataTree map[string]*[]byte
 
@@ -55,29 +52,33 @@ func (reg *Registry) Paths() []string {
 }
 
 // Walk walks down Registry.BasePath and adds all files found
-// ignore can be nil, but if not nil, it should return one of:
-//     SkipFile         - skip a single file
-//     filepath.SkipDir - skip a whole directory
-//     nil              - do not skip
-func (reg *Registry) Walk(ignore filepath.WalkFunc) error {
-	if ignore != nil {
-		return filepath.Walk(reg.BasePath, func(path string, info os.FileInfo, err error) error {
-			ret := ignore(path, info, err)
+func (reg *Registry) Walk() error {
+	return filepath.Walk(reg.BasePath, reg.add)
+}
 
-			switch ret {
-			case filepath.SkipDir:
-				return ret
+// WalkButIgnore walks down Registry.BasePath and calls ignore
+// for each child found.
+// If ignore returns true, the file/sub-directory is skipped.
+// Otherwise, the file is added (or the sub-directory is walked).
+func (reg *Registry) WalkButIgnore(ignore IgnoreFunc) error {
+	return filepath.Walk(reg.BasePath,
+		func(path string, info os.FileInfo, err error) error {
+			if ignore(path, info) {
+				fi, err := os.Stat(path)
+				if err != nil {
+					log.Printf("Error accessing file '%s': %v\n", path, err)
+					return nil
+				}
 
-			case SkipFile:
-				return nil
-
-			default:
-				return reg.add(path, info, err)
+				if fi.IsDir() {
+					return filepath.SkipDir
+				} else {
+					return nil
+				}
 			}
+
+			return reg.add(path, info, err)
 		})
-	} else {
-		return filepath.Walk(reg.BasePath, reg.add)
-	}
 }
 
 func (reg *Registry) Get(file string) []byte {
@@ -104,6 +105,11 @@ func (reg *Registry) set(file string, data []byte) {
 }
 
 func (reg *Registry) add(path string, info os.FileInfo, err error) error {
+	if err != nil {
+		log.Printf("Error accessing file '%s': %v\n", path, err)
+		return nil
+	}
+
 	// not interested in directories or hidden files
 	if info.IsDir() || info.Name()[0] == '.' {
 		return nil
@@ -111,7 +117,7 @@ func (reg *Registry) add(path string, info os.FileInfo, err error) error {
 
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Printf("Could not read file '%s'\n", path)
+		log.Printf("Could not read file '%s': %v\n", path, err)
 		return nil
 	}
 

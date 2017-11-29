@@ -1,4 +1,4 @@
-package station
+package client
 
 import (
 	"errors"
@@ -6,59 +6,40 @@ import (
  
 	"github.com/gorilla/websocket"
  
-	"radio/websrv/msg"
+	"radio/websrv/station"
 )
 
 var (
 	Disconnecting = errors.New("client disconnecting")
 )
 
-type Connection struct {
+type Data struct {
 	Name string
-	In   chan msg.Data
-	Out  chan<- msg.Data
 }
 
-func (conn *Connection) Work(ws *websocket.Conn, data *Data) {
+func (conn *Data) Work(ws *websocket.Conn, stn *station.Data) {
 	defer ws.Close()
 
 	// workaround for websocket.Conn not having a message reading channel!
-	type WsMsg struct {
-		msg.Data
-		Error error
-	}
-	wsMsg := make(chan WsMsg)
 
 	go func() {
 		for {
-			m := msg.Data{}
+			m := Data{}
 			err := ws.ReadJSON(&m)
 			wsMsg <- WsMsg{m, err}
 		}
 	}()
 	
-	// TODO TEST
-	for i := 0; i < 40; i++ {
-		ws.WriteJSON(&msg.Data{
-			Type: msg.TypeChat,
-			Chat: &msg.ChatMessage{
-				From:    "Server",
-				Content: "Hello, World!",
-			},
-		})
-	}
-	// TODO TEST
-	
 	// provide client with the current playlist
-	data.lock.RLock()
-	ws.WriteJSON(&msg.Data{
-		Type: msg.TypePlaylist,
-		Playlist: &msg.PlaylistMessage{
-			Method: msg.MethodUpdate,
-			Update: (*msg.PlaylistUpdate)(&data.Playlist),
+	stn.lock.RLock()
+	ws.WriteJSON(&Data{
+		Type: TypePlaylist,
+		Playlist: &PlaylistMessage{
+			Method: MethodUpdate,
+			Update: (*PlaylistUpdate)(&data.Playlist),
 		},
 	})
-	data.lock.RUnlock()
+	stn.lock.RUnlock()
 
 	for {
 		select {
@@ -90,9 +71,9 @@ func (conn *Connection) Work(ws *websocket.Conn, data *Data) {
 }
 
 // TODO do some filtering of error types. Not all errors are fatal for the connection.
-func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) error {
+func (conn *Data) handle(fromClient bool, m Data, ws *websocket.Conn) error {
 	switch m.Type {
-	case msg.TypeChat:
+	case TypeChat:
 		if fromClient {
 			conn.Out <- m
 		} else {
@@ -102,13 +83,13 @@ func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) 
 			}
 		}
 
-	case msg.TypeStream:
+	case TypeStream:
 		if fromClient {
 			conn.Out <- m
 		} else {
 		}
 
-	case msg.TypePlaylist:
+	case TypePlaylist:
 		if fromClient {
 			conn.Out <- m
 		} else {
@@ -118,7 +99,7 @@ func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) 
 			}
 		}
 
-	case msg.TypeStatus:
+	case TypeStatus:
 		if fromClient {
 			conn.Out <- m
 			if m.Status.Disconnected {
@@ -126,15 +107,15 @@ func (conn *Connection) handle(fromClient bool, m msg.Data, ws *websocket.Conn) 
 			}
 		} else {
 			// let client know who disconnected
-			err := ws.WriteJSON(&msg.Data{
-				Type: msg.TypeChat,
-				Chat: &msg.ChatMessage{
+			err := ws.WriteJSON(&Data{
+				Type: TypeChat,
+				Chat: &ChatMessage{
 					From:    "Station",
 					Content: m.Status.From + " disconnected.",
 				},
 			})
 			if err != nil {
-				log.Println("StatusMessage (Server) error:", err)
+				log.Println("StatusUpdate (Server) error:", err)
 				return err
 			}
 		}

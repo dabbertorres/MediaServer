@@ -1,48 +1,53 @@
-package main
+package websrv
 
-import "net/http"
+import (
+	"net/http"
 
-type HandleFunc func(http.ResponseWriter, *http.Request)
+	"github.com/gorilla/mux"
+)
 
-var routes = map[string]HandleFunc{
-	// basic server files!
-	"/":      indexHandler,
-	"/css/":  handler("text/css"),
-	"/html/": handler("text/html"),
-	"/js/":   handler("text/javascript"),
+func Routes() http.Handler {
+	router := mux.NewRouter()
 
-	// images!
-	"/img/png": handler("image/png"),
-	"/img/svg": handler("image/svg+xml"),
+	// application file paths
 
-	// favicon config crap (bless you, realfavicongenerator.net)
-	"/browserconfig.xml": customHandler(san("browserconfig.xml"), "application/xml"),
-	"/manifest.json":     customHandler(san("manifest.json"), "application/json"),
+	router.Path("/").Methods("GET").HandlerFunc(indexHandler)
+	router.PathPrefix("/css/").Methods("GET").HandlerFunc(handler("text/css"))
+	router.PathPrefix("/html/").Methods("GET").HandlerFunc(handler("text/html"))
+	router.PathPrefix("/js/").Methods("GET").HandlerFunc(handler("text/javascript"))
+	router.PathPrefix("/img/png").Methods("GET").HandlerFunc(handler("image/png"))
+	router.PathPrefix("/img/svg").Methods("GET").HandlerFunc(handler("image/svg+xml"))
 
-	// now the actual favicons
-	"/android-chrome-192x192.png": customHandler(san("img/favicon/android-chrome-192x192.png"), "image/png"),
-	"/android-chrome-512x512.png": customHandler(san("img/favicon/android-chrome-512x512.png"), "image/png"),
-	"/apple-touch-icon.png":       customHandler(san("img/favicon/apple-touch-icon.png"), "image/png"),
-	"/favicon.ico":                customHandler(san("img/favicon/favicon.ico"), "image/x-icon"),
-	"/favicon.png":                customHandler(san("img/favicon/favicon.png"), "image/png"),
-	"/favicon-16x16.png":          customHandler(san("img/favicon/favicon-16x16.png"), "image/png"),
-	"/favicon-32x32.png":          customHandler(san("img/favicon/favicon-32x32.png"), "image/png"),
-	"/mstile-150x150.png":         customHandler(san("img/favicon/mstile-150x150.png"), "image/png"),
-	"/safari-pinned-tab.svg":      customHandler(san("img/favicon/safari-pinned-tab.svg"), "image/svg"),
+	// favicons
 
-	// actually interesting stuff eventually
-	"/song/":    songHandler,
-	"/station/": stationHandler,
-	"/search/":  searchHandler,
-	"/socket/": socketHandler,
-}
+	router.Path("/browserconfig.xml").Methods("GET").HandlerFunc(customHandler("favicon/browserconfig.xml", "application/xml"))
+	router.Path("/manifest.json").Methods("GET").HandlerFunc(customHandler("favicon/manifest.json", "application/xml"))
+	router.Path("/android-chrome-192x192.png").Methods("GET").HandlerFunc(customHandler("favicon/android-chrome-192x192.png", "image/png"))
+	router.Path("/android-chrome-512x512.png").Methods("GET").HandlerFunc(customHandler("favicon/android-chrome-512x512.png", "image/png"))
+	router.Path("/apple-touch-icon.png").Methods("GET").HandlerFunc(customHandler("favicon/apple-touch-icon.png", "image/png"))
+	router.Path("/favicon.ico").Methods("GET").HandlerFunc(customHandler("favicon/favicon.ico", "image/x-icon"))
+	router.Path("/favicon.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon.png", "image/png"))
+	router.Path("/favicon-16x16.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon-16x16.png", "image/png"))
+	router.Path("/favicon-32x32.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon-32x32.png", "image/png"))
+	router.Path("/mstile-150x150.png").Methods("GET").HandlerFunc(customHandler("favicon/mstile-150x150.png", "image/png"))
+	router.Path("/safari-pinned-tab.svg").Methods("GET").HandlerFunc(customHandler("favicon/safari-pinned-tab.svg", "image/svg+xml"))
 
-func makeMuxer() *http.ServeMux {
-	mux := http.NewServeMux()
+	// api paths
 
-	for path, handle := range routes {
-		mux.HandleFunc(path, handle)
-	}
+	search := router.PathPrefix("/search").Subrouter()
+	search.Path("/").Methods("GET").HandlerFunc(searchHandler)
 
-	return mux
+	song := router.PathPrefix("/song").Subrouter()
+	song.Path("/{artist}/{title}").Methods("GET").HandlerFunc(songHandler)
+
+	station := router.PathPrefix("/station").Subrouter()
+	station.Path("/{name}").Methods("GET").HandlerFunc(tuneToStation)
+	station.Path("/{name}").Methods("POST").HandlerFunc(startStation)
+	station.Path("/{name}/playlist").Methods("GET").HandlerFunc(stationGetPlaylist)
+	station.Path("/{name}/playlist").Methods("POST").HandlerFunc(stationAddSong)
+	station.Path("/{name}/playlist").Methods("DELETE").HandlerFunc(stationRemoveSong)
+	station.Path("/{name}/song").Methods("GET").HandlerFunc(stationGetPlayingSong)
+	station.Path("/{name}/socket").Methods("GET").HandlerFunc(stationConnect)
+
+	return router
 }

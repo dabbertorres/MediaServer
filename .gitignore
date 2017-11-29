@@ -87,3 +87,4 @@ vendor/*/
 
 ### files possibly containing secrets
 *.env
+mysql_password.txt

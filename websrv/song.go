@@ -1,11 +1,11 @@
-package song
+package websrv
 
 import (
 	"io"
 	"io/ioutil"
 )
 
-type Info struct {
+type Song struct {
 	Title  string  `json:"title"`
 	Artist string  `json:"artist"`
 	Album  string  `json:"album"`

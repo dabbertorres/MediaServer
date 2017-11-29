@@ -1,9 +1,13 @@
-version: '3.2'
+version: "3.3"
 
 services:
   web-server:
-    build: ./websrv
+    build: .
     restart: always
+    environment:
+      WEBSRV_APP_DIR: /app
+      WEBSRV_URLGEN_DIR: /srv/urlgen
+      MYSQL_ROOT_PASSWORD:
     depends_on:
       - db
     ports:
@@ -13,20 +17,23 @@ services:
     volumes:
       - type: bind
         source: ./app
-        target: /app/app
+        target: /app
+      - type: bind
+        source: ./urlgen/dat
+        target: /srv/urlgen
 
   db:
     image: mysql:5.7
     restart: always
-    env_file: ./filedb/db.env
+    environment:
+      MYSQL_ROOT_PASSWORD:
     networks:
       radio:
         aliases:
           - database
     volumes:
-      - type: volume
-        source: database-data
-        target: /var/lib/mysql
+      # mount our init scripts
+      - ./db:/docker-entrypoint-initdb.d
 
 networks:
   radio:

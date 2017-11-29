@@ -33,7 +33,8 @@ let socket = new WebSocket(SOCKET_URL);
 if(socket !== null)
     document.addEventListener("unload", socket.close);
 
-socket.addEventListener("error", err => console.error(err)); // TODO tell the user about the error
+// TODO tell the user about the error
+socket.addEventListener("error", err => console.error(err));
 socket.addEventListener("message", socketMessage);
 
 function chatInput(text)

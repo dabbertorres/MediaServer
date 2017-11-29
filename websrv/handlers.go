@@ -1,16 +1,24 @@
-package main
+package websrv
 
 import (
 	"log"
 	"net/http"
 	"path"
-    
+	"path/filepath"
+
+	"github.com/gorilla/mux"
+
 	"radio/urlgen"
 	"radio/websrv/station"
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	// someone wants to create a new station!
+	panic("TODO")
+	// TODO make index.html
+	// should have a small description, links, etc
+	// have login, register, new temp station choices
+
+	// user accounts (optional) basically reserve a permanent, and custom station name
 
 	// make a url and station
 	newUrl := urlgen.Gen()
@@ -19,7 +27,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/station/"+newUrl, http.StatusTemporaryRedirect)
 }
 
-func customHandler(path string, mimeType string) func(http.ResponseWriter, *http.Request) {
+func customHandler(path string, mimeType string) http.HandlerFunc {
+	path = filepath.Clean(path)
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := registry.Get(path)
 		if data != nil {
@@ -35,7 +44,7 @@ func customHandler(path string, mimeType string) func(http.ResponseWriter, *http
 	}
 }
 
-func handler(mimeType string) func(http.ResponseWriter, *http.Request) {
+func handler(mimeType string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := registry.Get(r.URL.Path)
 		if data != nil {
@@ -49,6 +58,7 @@ func handler(mimeType string) func(http.ResponseWriter, *http.Request) {
 }
 
 func songHandler(w http.ResponseWriter, r *http.Request) {
+	panic("TODO")
 	// TODO request file from the database
 
 	// tell client that it can request byte ranges of a song
@@ -56,12 +66,11 @@ func songHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusPartialContent)
 }
 
-func stationHandler(w http.ResponseWriter, r *http.Request) {
-	stnUrl := path.Base(r.URL.Path)
-
-	stn, ok := liveStations[stnUrl]
+func tuneToStation(w http.ResponseWriter, r *http.Request) {
+	name := mux.Vars(r)["name"]
+	stn, ok := liveStations[name]
 	if !ok {
-		log.Printf("Request for non-existent station: '%s'\n", stnUrl)
+		log.Printf("Request for non-existent station: '%s'\n", name)
 		http.NotFound(w, r)
 		return
 	}
@@ -70,11 +79,11 @@ func stationHandler(w http.ResponseWriter, r *http.Request) {
 
 	data, err := tmpl.Generate(stn)
 	if err != nil {
-		log.Printf("Error generating html page for station '%s': '%s'", stnUrl, err)
+		log.Printf("Error generating html page for station '%s': '%s'", name, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else if data == nil || len(data) == 0 {
-		log.Printf("No output generated for station page '%s'\n", stnUrl)
+		log.Printf("No output generated for station page '%s'\n", name)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -83,19 +92,40 @@ func stationHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func searchHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO return results for specified search parameters
+func startStation(w http.ResponseWriter, r *http.Request) {
+	panic("TODO")
 }
 
-func socketHandler(w http.ResponseWriter, r *http.Request) {
+func stationGetPlaylist(w http.ResponseWriter, r *http.Request) {
+	panic("TODO")
+}
+
+func stationAddSong(w http.ResponseWriter, r *http.Request) {
+	panic("TODO")
+}
+
+func stationRemoveSong(w http.ResponseWriter, r *http.Request) {
+	panic("TODO")
+}
+
+func stationGetPlayingSong(w http.ResponseWriter, r *http.Request) {
+	panic("TODO")
+}
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO return results for specified search parameters
+	panic("TODO")
+}
+
+func stationConnect(w http.ResponseWriter, r *http.Request) {
 	stnUrl := path.Base(r.URL.Path)
-	
+
 	stn, ok := liveStations[stnUrl]
 	if !ok {
 		log.Printf("Socket request for non-existent station: '%s'\n", stnUrl)
 		http.NotFound(w, r)
 		return
 	}
-	
+
 	stn.Add(w, r)
 }
