@@ -2,41 +2,40 @@ version: "3.3"
 
 services:
   web-server:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-websrv
     restart: always
     environment:
-      WEBSRV_APP_DIR: /app
-      WEBSRV_URLGEN_DIR: /srv/urlgen
       MYSQL_ROOT_PASSWORD:
-    depends_on:
-      - db
     ports:
       - "80:8080"
+    depends_on:
+      - db
     networks:
       - radio
     volumes:
-      - type: bind
-        source: ./app
-        target: /app
-      - type: bind
-        source: ./urlgen/dat
-        target: /srv/urlgen
+      - type: volume
+        source: songs
+        target: /songs
 
   db:
-    image: mysql:5.7
+    build:
+      context: .
+      dockerfile: Dockerfile-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD:
     networks:
-      radio:
-        aliases:
-          - database
+      - radio
     volumes:
-      # mount our init scripts
-      - ./db:/docker-entrypoint-initdb.d
+      - type: volume
+        source: data
+        target: /var/lib/mysql
 
 networks:
   radio:
 
 volumes:
-  database-data:
+  data:
+  songs:

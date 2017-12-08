@@ -1,0 +1,14 @@
+FROM scratch
+
+COPY ./radio /
+COPY ./app/ /app/
+COPY ./urlgen/dat/ /urlgren/
+
+ENV WEBSRV_APP_DIR=/app \
+    WEBSRV_URLGEN_DIR=/urlgen
+
+EXPOSE 8080
+
+VOLUME /songs
+
+ENTRYPOINT ["./radio"]

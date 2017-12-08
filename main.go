@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -19,6 +20,7 @@ import (
 const (
 	appDirEnv    = "WEBSRV_APP_DIR"
 	urlGenDirEnv = "WEBSRV_URLGEN_DIR"
+	dbPassEnv    = "MYSQL_ROOT_PASSWORD"
 )
 
 func main() {
@@ -26,10 +28,11 @@ func main() {
 
 	appFileDir := os.Getenv(appDirEnv)
 	urlGenDir := os.Getenv(urlGenDirEnv)
+	dbPass := os.Getenv(dbPassEnv)
 
 	// db startup may take a while, get it going now, while we do other setup
-	dbC, errC := connectToDB(60 * time.Second, 6 * time.Second)
-	
+	dbC, errC := connectToDB("root", dbPass, "db", "radio", 60*time.Second, 6*time.Second)
+
 	if err := websrv.Init(appFileDir); err != nil {
 		panic(err)
 	}
@@ -60,13 +63,13 @@ func main() {
 		}
 		waitShutdown <- true
 	})
-	
+
 	// now lets grab (or wait for) the db connection
 	var db *sql.DB
 	select {
 	case db = <-dbC:
 		defer db.Close()
-		
+
 	case err := <-errC:
 		panic(err)
 	}
@@ -83,41 +86,41 @@ func main() {
 	}
 }
 
-func connectToDB(timeout, tryAgainPeriod time.Duration) (chan *sql.DB, chan error) {
+func connectToDB(user, password, address, dbName string, timeout, tryAgainPeriod time.Duration) (chan *sql.DB, chan error) {
 	dbC := make(chan *sql.DB, 2)
 	errC := make(chan error, 2)
-	
+
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		
+
 		ticker := time.NewTicker(tryAgainPeriod)
 		defer ticker.Stop()
-		
+
 		for {
 			select {
 			case <-ctx.Done():
 				errC <- ctx.Err()
 				return
-				
+
 			case <-ticker.C:
-				db, err := sql.Open("mysql", "database@/radio")
+				db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s/%s", user, password, address, dbName))
 				if err != nil {
 					errC <- err
 					return
 				}
-				
+
 				err = db.Ping()
 				if err != nil {
 					errC <- err
 					db.Close()
 					return
 				}
-				
+
 				dbC <- db
 			}
 		}
 	}()
-	
+
 	return dbC, errC
 }

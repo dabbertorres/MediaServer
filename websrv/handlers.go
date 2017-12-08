@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"radio/urlgen"
-	"radio/websrv/station"
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +21,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 
 	// make a url and station
 	newUrl := urlgen.Gen()
-	liveStations[newUrl] = station.New(newUrl)
+	liveStations[newUrl] = NewStation(newUrl)
 
 	http.Redirect(w, r, "/station/"+newUrl, http.StatusTemporaryRedirect)
 }

@@ -4,13 +4,12 @@ import (
 	"path/filepath"
 
 	"radio/file"
-	"radio/websrv/station"
 )
 
 // data needed at runtime to accomplish our desires!
 var (
 	registry     *file.Registry
-	liveStations station.Map
+	liveStations = make(map[string]*Station)
 )
 
 // Init initializes data needed for running the web server
@@ -25,7 +24,6 @@ func Init(registryPath string) error {
 	}
 
 	registry = reg
-	liveStations = make(station.Map)
 
 	loadTemplates()
 

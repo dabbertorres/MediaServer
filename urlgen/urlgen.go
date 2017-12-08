@@ -2,11 +2,11 @@ package urlgen
 
 import (
 	"bufio"
+	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
-	"fmt"
 )
 
 const (
