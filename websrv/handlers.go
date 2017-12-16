@@ -11,38 +11,6 @@ import (
 	"radio/urlgen"
 )
 
-func indexHandler(w http.ResponseWriter, r *http.Request) {
-	panic("TODO")
-	// TODO make index.html
-	// should have a small description, links, etc
-	// have login, register, new temp station choices
-
-	// user accounts (optional) basically reserve a permanent, and custom station name
-
-	// make a url and station
-	newUrl := urlgen.Gen()
-	liveStations[newUrl] = NewStation(newUrl)
-
-	http.Redirect(w, r, "/station/"+newUrl, http.StatusTemporaryRedirect)
-}
-
-func customHandler(path string, mimeType string) http.HandlerFunc {
-	path = filepath.Clean(path)
-	return func(w http.ResponseWriter, r *http.Request) {
-		data := registry.Get(path)
-		if data != nil {
-			if mimeType != "" {
-				w.Header().Add("Content-Type", mimeType)
-			}
-
-			w.Write(data)
-		} else {
-			log.Printf("Request for unknown file '%s'\n", r.URL.Path)
-			w.WriteHeader(http.StatusNotFound)
-		}
-	}
-}
-
 func handler(mimeType string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := registry.Get(r.URL.Path)
@@ -56,9 +24,44 @@ func handler(mimeType string) http.HandlerFunc {
 	}
 }
 
+func templateHandler(path, mimeType string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO need to pass stuff to the template
+		data, err := RunTemplate(path, nil)
+		if err != nil {
+			if err == TemplateDoesNotExist {
+				log.Printf("Request for unknown file '%s'\n", path)
+				w.WriteHeader(http.StatusNotFound)
+			} else {
+				log.Printf("Error executing template '%s': %v\n", path, err)
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+			
+			return
+		}
+
+		w.Header().Add("Content-Type", mimeType)
+		w.Write(data)
+	}
+}
+
+func customHandler(path, mimeType string) http.HandlerFunc {
+	path = filepath.Clean(path)
+	return func(w http.ResponseWriter, r *http.Request) {
+		data := registry.Get(path)
+		if data != nil {
+			w.Header().Add("Content-Type", mimeType)
+			w.Write(data)
+		} else {
+			log.Printf("Request for unknown '%s'\n", r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}
+}
+
 func songHandler(w http.ResponseWriter, r *http.Request) {
 	panic("TODO")
-	// TODO request file from the database
+	// TODO request song file from the database
 
 	// tell client that it can request byte ranges of a song
 	w.Header().Add("Accept-Ranges", "bytes")
@@ -74,14 +77,18 @@ func tuneToStation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := templatePages["/html/station.html"]
+	// TODO upgrade to websocket connection, get user info, etc
+	stn.TuneIn <- NewClient("", nil)
 
-	data, err := tmpl.Generate(stn)
+	// TODO data to pass!
+	data, err := RunTemplate("html/station.html", nil)
 	if err != nil {
 		log.Printf("Error generating html page for station '%s': '%s'", name, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
-	} else if data == nil || len(data) == 0 {
+	}
+
+	if data == nil || len(data) == 0 {
 		log.Printf("No output generated for station page '%s'\n", name)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -92,7 +99,15 @@ func tuneToStation(w http.ResponseWriter, r *http.Request) {
 }
 
 func startStation(w http.ResponseWriter, r *http.Request) {
-	panic("TODO")
+	// TODO check if session corresponds to a user
+	// if so, then don't generate a new station
+	// just start up that user's station
+
+	// make a url and station
+	newUrl := urlgen.Gen()
+	liveStations[newUrl] = NewStation(newUrl)
+
+	http.Redirect(w, r, "/station/"+newUrl, http.StatusTemporaryRedirect)
 }
 
 func stationGetPlaylist(w http.ResponseWriter, r *http.Request) {

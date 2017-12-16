@@ -3,29 +3,45 @@ package websrv
 import (
 	"path/filepath"
 
-	"radio/file"
+	"radio/cache"
 )
 
 // data needed at runtime to accomplish our desires!
 var (
-	registry     *file.Registry
+	registry     *cache.Registry
 	liveStations = make(map[string]*Station)
 )
 
 // Init initializes data needed for running the web server
-func Init(registryPath string) error {
-	reg, err := file.NewRegistry(filepath.Clean(registryPath))
+func Init(registryPath string) (err error) {
+	registry, err = cache.NewRegistry(filepath.Clean(registryPath))
 	if err != nil {
 		return err
 	}
 
-	if err := reg.Walk(); err != nil {
+	if err := registry.Walk(); err != nil {
 		return err
 	}
 
-	registry = reg
-
-	loadTemplates()
+	helpTmpls := registry.Filter("tmpl/.*\\.tmpl")
+	err = LoadHelperTemplates(helpTmpls...)
+	if err != nil {
+		return err
+	}
+	
+	for _, f := range helpTmpls {
+		go ReloadHelperTemplate(f.Name, registry.ListenTo(f.Name))
+	}
+	
+	htmlTmpls := registry.Filter("html/.*\\.html")
+	for _, f := range htmlTmpls {
+		err = LoadTemplate(f)
+		if err != nil {
+			return err
+		}
+		
+		go ReloadTemplate(f.Name, registry.ListenTo(f.Name))
+	}
 
 	return nil
 }

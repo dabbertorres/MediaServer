@@ -2,61 +2,18 @@
 <html lang = "en">
 <head>
     <title>Radio {{.Name}}</title>
-
-    <meta charset = "UTF-8">
-    <meta http-equiv = "X-UA-Compatible" content = "IE=edge,chrome=1">
-    <meta name = 'viewport' content = 'width=device-width, initial-scale=1.0'>
-
-    <!-- favicons -->
-    <link rel = "manifest" href = "/manifest.json">
-    <link rel = "icon" type = "image/png" href = "/favicon.png">
-    <link rel = "icon" type = "image/png" sizes = "32x32" href = "/favicon-32x32.png">
-    <link rel = "icon" type = "image/png" sizes = "16x16" href = "/favicon-16x16.png">
-    <link rel = "apple-touch-icon" sizes = "180x180" href = "/apple-touch-icon.png">
-    <link rel = "mask-icon" href = "/safari-pinned-tab.svg" color = "#5bbad5">
-
-    <!-- style -->
-    <meta name = "theme-color" content = "#343434">
-    <link rel = "stylesheet"
-          href = "https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en"
-          type = "text/css">
-    <link rel = "stylesheet" href = "https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel = "stylesheet" href = "https://code.getmdl.io/1.3.0/material.blue_grey-red.min.css">
-    <link rel = "stylesheet" href = "/css/style.css">
-    <script defer src = "https://code.getmdl.io/1.3.0/material.min.js"></script>
-
+    {{ template "tmpl/meta.tmpl" }}
+    {{ template "tmpl/favicon.tmpl" }}
+    {{ template "tmpl/style.tmpl" }}
     <!-- API scripts -->
     <script async src = "https://www.youtube.com/iframe_api"></script>
 </head>
 
 <body>
     <div class = "mdl-layout mdl-js-layout mdl-layout--fixed-header">
-        <header class = "mdl-layout__header mdl-color--blue-300 mdl-color-text--grey-800">
-            <div class = "mdl-layout__header-row">
-                <span class = "mdl-layout-title">Radio</span>
-                <div class = "mdl-layout-spacer"></div>
-                <div class = "mdl-textfield mdl-js-textfield mdl-textfield--expandable">
-                    <label class = "mdl-button mdl-js-button mdl-button--icon" for = "search">
-                        <i class = "material-icons">search</i>
-                    </label>
-                    <div class = "mdl-textfield__expandable-holder">
-                        <input class = "mdl-textfield__input" type = "text" id = "search">
-                        <label class = "mdl-textfield__label" for = "search">Enter your query...</label>
-                    </div>
-                </div>
-                <button class = "mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id = "headerButton">
-                    <i class = "material-icons">more_vert</i>
-                </button>
-                <ul class = "mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right" for = "headerButton">
-                    <li class = "mdl-menu__item">About</li>
-                    <li class = "mdl-menu__item">Contact</li>
-                    <li class = "mdl-menu__item">Legal information</li>
-                    <li class = "mdl-menu__item">Help</li>
-                </ul>
-            </div>
-        </header>
+        {{ template "tmpl/header.tmpl" }}
 
-        <main class = "mdl-layout__content" role = "main">
+        <main class = "mdl-layout__content">
             <div class = "mdl-grid mdl-grid--no-spacing main-area">
                 <div class = "mdl-cell panel left-panel">
                     <ul class = "mdl-list" id = "playlist"></ul>
@@ -81,7 +38,7 @@
             <div id = "progressBarTooltip" class = "mdl-tooltip" data-mdl-for = "progressBar">0:00</div>
             <p class = "volume-controls-wrapper">
                 <label class = "mdl-icon-toggle mdl-js-icon-toggle mdl-js-ripple-effect" for = "volumeMuteToggle">
-                    <input type = "checkbox" class = "mdl-icon-toggle__input" id = "volumeMuteToggle">
+                    <input type = "checkbox" class = "mdl-icon-toggle__input" id = "volumeMuteToggle"/>
                     <i class = "mdl-icon-toggle__label material-icons" id = "volumeIcon">volume_up</i>
                 </label>
                 <input type = "range"
@@ -90,8 +47,8 @@
                        min = "0"
                        max = "100"
                        step = "2"
-                       value = "50">
-            <div id = "volumeSliderTooltip" class = "mdl-tooltip" data-mdl-for = "volumeSlider">50%</div>
+                       value = "50"/>
+                <span id = "volumeSliderTooltip" class = "mdl-tooltip" data-mdl-for = "volumeSlider">50%</span>
             </p>
         </footer>
     </div>

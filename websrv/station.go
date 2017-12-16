@@ -3,7 +3,6 @@ package websrv
 import (
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/gorilla/websocket"
 )

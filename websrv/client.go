@@ -86,7 +86,7 @@ func (c *Client) write(stn *Station) {
 
 // TODO do some filtering of error types. Not all errors are fatal for the connection.
 func (c *Client) handle(fromClient bool, m Client, ws *websocket.Conn) error {
-	switch m.Type {
+	/*switch m.Type {
 	case TypeChat:
 		if fromClient {
 			c.Out <- m
@@ -133,7 +133,7 @@ func (c *Client) handle(fromClient bool, m Client, ws *websocket.Conn) error {
 				return err
 			}
 		}
-	}
+	}*/
 
 	return nil
 }

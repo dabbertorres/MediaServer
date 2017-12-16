@@ -1,4 +1,4 @@
-package file
+package cache
 
 import (
 	"io/ioutil"
@@ -13,9 +13,10 @@ import (
 
 type IgnoreFunc func(path string, info os.FileInfo) bool
 
-type DataTree map[string][]byte
+type dataMap map[string][]byte
+type listenerMap map[string]chan []byte
 
-type Pair struct {
+type File struct {
 	Name string
 	Data []byte
 }
@@ -23,17 +24,19 @@ type Pair struct {
 type Registry struct {
 	BasePath   string
 	filesMutex sync.RWMutex
-	files      DataTree
+	files      dataMap
+	listeners  listenerMap
 	watcher    *fsnotify.Watcher
 }
 
 func NewRegistry(basePath string) (reg *Registry, err error) {
 	reg = &Registry{
-		BasePath: filepath.Clean(basePath),
-		files:    make(DataTree),
+		BasePath:  filepath.Clean(basePath),
+		files:     make(dataMap),
+		listeners: make(listenerMap),
 	}
-	reg.watcher, err = fsnotify.NewWatcher()
 
+	reg.watcher, err = fsnotify.NewWatcher()
 	if err == nil {
 		go reg.watch()
 	}
@@ -42,6 +45,9 @@ func NewRegistry(basePath string) (reg *Registry, err error) {
 }
 
 func (reg *Registry) Close() {
+	for _, c := range reg.listeners {
+		close(c)
+	}
 	reg.watcher.Close()
 }
 
@@ -58,18 +64,18 @@ func (reg *Registry) Paths() []string {
 }
 
 // Filter returns the files with names matching the given regex
-func (reg *Registry) Filter(filter string) []Pair {
+func (reg *Registry) Filter(filter string) []File {
 	reg.filesMutex.RLock()
 	defer reg.filesMutex.RUnlock()
-	
-	ret := make([]Pair, 0, len(reg.files))
-	
+
+	ret := make([]File, 0, len(reg.files))
+
 	for name, data := range reg.files {
 		if match, _ := regexp.MatchString(filter, name); match {
-			ret = append(ret, Pair{name, data})
+			ret = append(ret, File{name, data})
 		}
 	}
-	
+
 	return ret
 }
 
@@ -80,15 +86,15 @@ func (reg *Registry) Walk() error {
 
 // WalkButIgnore walks down Registry.BasePath and calls ignore
 // for each child found.
-// If ignore returns true, the file/sub-directory is skipped.
-// Otherwise, the file is added (or the sub-directory is walked).
+// If ignore returns true, the cache/sub-directory is skipped.
+// Otherwise, the cache is added (or the sub-directory is walked).
 func (reg *Registry) WalkButIgnore(ignore IgnoreFunc) error {
 	return filepath.Walk(reg.BasePath,
 		func(path string, info os.FileInfo, err error) error {
 			if ignore(path, info) {
 				fi, err := os.Stat(path)
 				if err != nil {
-					log.Printf("Error accessing file '%s': %v\n", path, err)
+					log.Printf("Error accessing cache '%s': %v\n", path, err)
 					return nil
 				}
 
@@ -115,12 +121,17 @@ func (reg *Registry) Get(file string) []byte {
 	}
 }
 
-func (reg *Registry) set(file string, data []byte) {
-	// ensure we have a top level directory character
-	if file[0] != '/' {
-		file = "/" + file
+func (reg *Registry) ListenTo(file string) <-chan []byte {
+	c, ok := reg.listeners[file]
+	if !ok {
+		c = make(chan []byte)
+		reg.listeners[file] = c
 	}
 
+	return c
+}
+
+func (reg *Registry) set(file string, data []byte) {
 	reg.filesMutex.Lock()
 	reg.files[filepath.ToSlash(file)] = data
 	reg.filesMutex.Unlock()
@@ -128,7 +139,7 @@ func (reg *Registry) set(file string, data []byte) {
 
 func (reg *Registry) add(path string, info os.FileInfo, err error) error {
 	if err != nil {
-		log.Printf("Error accessing file '%s': %v\n", path, err)
+		log.Printf("Error accessing cache '%s': %v\n", path, err)
 		return nil
 	}
 
@@ -145,7 +156,7 @@ func (reg *Registry) add(path string, info os.FileInfo, err error) error {
 
 	reg.watcher.Add(path)
 
-	// map the file path relative to the Base path for ease of use
+	// map the cache path relative to the Base path for ease of use
 	path, _ = filepath.Rel(reg.BasePath, path)
 	reg.set(path, data)
 
@@ -164,7 +175,7 @@ func (reg *Registry) watch() {
 
 			if is(ev.Op, fsnotify.Chmod) {
 				if err := tryOpen(ev.Name); err != nil {
-					log.Printf("File '%s''s changed making it inaccessible - no longer watching.\n", ev.Name)
+					log.Printf("File '%s' change made it inaccessible - no longer watching.\n", ev.Name)
 					reg.watcher.Remove(ev.Name)
 					break
 				}
@@ -176,8 +187,9 @@ func (reg *Registry) watch() {
 					log.Printf("Reloading '%s'\n", ev.Name)
 					path, _ := filepath.Rel(reg.BasePath, ev.Name)
 					reg.set(path, data)
+					go reg.notify(ev.Name)
 				} else {
-					log.Printf("Error (%s) reading modified file '%s' - no longer watching.\n", err, ev.Name)
+					log.Printf("Error (%s) reading modified cache '%s' - no longer watching.\n", err, ev.Name)
 					reg.watcher.Remove(ev.Name)
 					break
 				}
@@ -186,6 +198,15 @@ func (reg *Registry) watch() {
 		case err := <-reg.watcher.Errors:
 			log.Println("File watch error:", err)
 		}
+	}
+}
+
+func (reg *Registry) notify(file string) {
+	c, ok := reg.listeners[file]
+	if ok {
+		reg.filesMutex.RLock()
+		c <- reg.files[file]
+		reg.filesMutex.RUnlock()
 	}
 }
 

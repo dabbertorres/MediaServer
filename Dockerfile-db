@@ -1,6 +1,6 @@
 FROM mysql:5.7
 
-COPY ./scripts/init.sql /docker-entrypoint-initdb.d/
-COPY ./songs.csv /docker-entrypoint-initdb.d/
+COPY scripts/init.sql /docker-entrypoint-initdb.d/
+COPY songs.csv /docker-entrypoint-initdb.d/
 
 VOLUME /songs /var/lib/mysql

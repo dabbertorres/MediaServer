@@ -6,31 +6,42 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	MimeTypeHTML       = "text/html"
+	MimeTypeCSS        = "text/css"
+	MimeTypeJavaScript = "text/javascript"
+	MimeTypePNG        = "image/png"
+	MimeTypeSVG        = "image/svg+xml"
+	MimeTypeXML        = "application/xml"
+	MimeTypeICO        = "image/x-icon"
+	MimeTypeJSON       = "application/json"
+)
+
 func Routes() http.Handler {
 	router := mux.NewRouter()
 
-	// application file paths
+	// application cache paths
 
-	router.Path("/").Methods("GET").HandlerFunc(indexHandler)
-	router.PathPrefix("/css/").Methods("GET").HandlerFunc(handler("text/css"))
-	router.PathPrefix("/html/").Methods("GET").HandlerFunc(handler("text/html"))
-	router.PathPrefix("/js/").Methods("GET").HandlerFunc(handler("text/javascript"))
-	router.PathPrefix("/img/png").Methods("GET").HandlerFunc(handler("image/png"))
-	router.PathPrefix("/img/svg").Methods("GET").HandlerFunc(handler("image/svg+xml"))
+	router.Path("/").Methods("GET").HandlerFunc(templateHandler("html/index.html", MimeTypeHTML))
+	router.PathPrefix("/css/").Methods("GET").HandlerFunc(handler(MimeTypeCSS))
+	router.PathPrefix("/html/").Methods("GET").HandlerFunc(handler(MimeTypeHTML))
+	router.PathPrefix("/js/").Methods("GET").HandlerFunc(handler(MimeTypeJavaScript))
+	router.PathPrefix("/img/png/").Methods("GET").HandlerFunc(handler(MimeTypePNG))
+	router.PathPrefix("/img/svg/").Methods("GET").HandlerFunc(handler(MimeTypeSVG))
 
 	// favicons
 
-	router.Path("/browserconfig.xml").Methods("GET").HandlerFunc(customHandler("favicon/browserconfig.xml", "application/xml"))
-	router.Path("/manifest.json").Methods("GET").HandlerFunc(customHandler("favicon/manifest.json", "application/xml"))
-	router.Path("/android-chrome-192x192.png").Methods("GET").HandlerFunc(customHandler("favicon/android-chrome-192x192.png", "image/png"))
-	router.Path("/android-chrome-512x512.png").Methods("GET").HandlerFunc(customHandler("favicon/android-chrome-512x512.png", "image/png"))
-	router.Path("/apple-touch-icon.png").Methods("GET").HandlerFunc(customHandler("favicon/apple-touch-icon.png", "image/png"))
-	router.Path("/favicon.ico").Methods("GET").HandlerFunc(customHandler("favicon/favicon.ico", "image/x-icon"))
-	router.Path("/favicon.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon.png", "image/png"))
-	router.Path("/favicon-16x16.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon-16x16.png", "image/png"))
-	router.Path("/favicon-32x32.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon-32x32.png", "image/png"))
-	router.Path("/mstile-150x150.png").Methods("GET").HandlerFunc(customHandler("favicon/mstile-150x150.png", "image/png"))
-	router.Path("/safari-pinned-tab.svg").Methods("GET").HandlerFunc(customHandler("favicon/safari-pinned-tab.svg", "image/svg+xml"))
+	router.Path("/browserconfig.xml").Methods("GET").HandlerFunc(customHandler("favicon/browserconfig.xml", MimeTypeXML))
+	router.Path("/manifest.json").Methods("GET").HandlerFunc(customHandler("favicon/manifest.json", MimeTypeJSON))
+	router.Path("/android-chrome-192x192.png").Methods("GET").HandlerFunc(customHandler("favicon/android-chrome-192x192.png", MimeTypePNG))
+	router.Path("/android-chrome-512x512.png").Methods("GET").HandlerFunc(customHandler("favicon/android-chrome-512x512.png", MimeTypePNG))
+	router.Path("/apple-touch-icon.png").Methods("GET").HandlerFunc(customHandler("favicon/apple-touch-icon.png", MimeTypePNG))
+	router.Path("/favicon.ico").Methods("GET").HandlerFunc(customHandler("favicon/favicon.ico", MimeTypeICO))
+	router.Path("/favicon.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon.png", MimeTypePNG))
+	router.Path("/favicon-16x16.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon-16x16.png", MimeTypePNG))
+	router.Path("/favicon-32x32.png").Methods("GET").HandlerFunc(customHandler("favicon/favicon-32x32.png", MimeTypePNG))
+	router.Path("/mstile-150x150.png").Methods("GET").HandlerFunc(customHandler("favicon/mstile-150x150.png", MimeTypePNG))
+	router.Path("/safari-pinned-tab.svg").Methods("GET").HandlerFunc(customHandler("favicon/safari-pinned-tab.svg", MimeTypeSVG))
 
 	// api paths
 

@@ -31,16 +31,16 @@ func main() {
 	dbPass := os.Getenv(dbPassEnv)
 
 	// db startup may take a while, get it going now, while we do other setup
-	dbC, errC := connectToDB("root", dbPass, "db", "radio", 60*time.Second, 6*time.Second)
+	dbC, errC := connectToDB("root", dbPass, "db", "radio", 19*time.Second, 6*time.Second)
 
 	if err := websrv.Init(appFileDir); err != nil {
-		panic(err)
+		log.Panicln(err)
 	}
 	defer websrv.Close()
 
 	err := urlgen.LoadDir(filepath.Clean(urlGenDir))
 	if err != nil {
-		panic(err)
+		log.Panicln(err)
 	}
 
 	server := http.Server{
@@ -55,7 +55,7 @@ func main() {
 
 	// listen for termination signal
 	interrupt.OnExit(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
 		err := server.Shutdown(ctx)
 		if err != nil {
@@ -71,7 +71,7 @@ func main() {
 		defer db.Close()
 
 	case err := <-errC:
-		panic(err)
+		log.Panicln("Error connecting to db:", err)
 	}
 
 	// hey now we can do what we want
@@ -86,9 +86,9 @@ func main() {
 	}
 }
 
-func connectToDB(user, password, address, dbName string, timeout, tryAgainPeriod time.Duration) (chan *sql.DB, chan error) {
-	dbC := make(chan *sql.DB, 2)
-	errC := make(chan error, 2)
+func connectToDB(user, password, address, dbName string, timeout, tryAgainPeriod time.Duration) (<-chan *sql.DB, <-chan error) {
+	dbC := make(chan *sql.DB)
+	errC := make(chan error)
 
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -104,7 +104,7 @@ func connectToDB(user, password, address, dbName string, timeout, tryAgainPeriod
 				return
 
 			case <-ticker.C:
-				db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@%s/%s", user, password, address, dbName))
+				db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", user, password, address, dbName))
 				if err != nil {
 					errC <- err
 					return

@@ -30,6 +30,10 @@ fileExtensions = [".mp3", ".oga", ".ogg", ".opus", ".wav", ".flac", ".wma", ".m4
 
 
 def main(argv):
+    if len(argv) < 3:
+        print("Incorrect number of arguments. Should be 2: search_path output_file")
+        return
+
     search_path = argv[1]
     output_path = argv[2]
     songs = []
@@ -44,7 +48,7 @@ def main(argv):
             path = os.path.join(root, fileName)
             tag = TinyTag.get(path, duration=False)
 
-            # make the path in the csv file relative to the expected file structure in a docker container
+            # make the path in the csv cache relative to the expected cache structure in a docker container
             # and make path separators Unix-style
             songs.append(
                 SongFile(
