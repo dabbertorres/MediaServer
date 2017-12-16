@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
@@ -12,7 +13,12 @@ import (
 
 type IgnoreFunc func(path string, info os.FileInfo) bool
 
-type DataTree map[string]*[]byte
+type DataTree map[string][]byte
+
+type Pair struct {
+	Name string
+	Data []byte
+}
 
 type Registry struct {
 	BasePath   string
@@ -48,6 +54,22 @@ func (reg *Registry) Paths() []string {
 		i++
 	}
 
+	return ret
+}
+
+// Filter returns the files with names matching the given regex
+func (reg *Registry) Filter(filter string) []Pair {
+	reg.filesMutex.RLock()
+	defer reg.filesMutex.RUnlock()
+	
+	ret := make([]Pair, 0, len(reg.files))
+	
+	for name, data := range reg.files {
+		if match, _ := regexp.MatchString(filter, name); match {
+			ret = append(ret, Pair{name, data})
+		}
+	}
+	
 	return ret
 }
 
@@ -89,7 +111,7 @@ func (reg *Registry) Get(file string) []byte {
 	if ret == nil {
 		return nil
 	} else {
-		return *ret
+		return ret
 	}
 }
 
@@ -100,7 +122,7 @@ func (reg *Registry) set(file string, data []byte) {
 	}
 
 	reg.filesMutex.Lock()
-	reg.files[filepath.ToSlash(file)] = &data
+	reg.files[filepath.ToSlash(file)] = data
 	reg.filesMutex.Unlock()
 }
 
