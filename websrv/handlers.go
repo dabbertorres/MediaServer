@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 	"path"
-	"path/filepath"
 
 	"github.com/gorilla/mux"
 
 	"radio/urlgen"
+	"encoding/json"
 )
 
 func handler(mimeType string) http.HandlerFunc {
@@ -36,17 +36,14 @@ func templateHandler(path, mimeType string) http.HandlerFunc {
 				log.Printf("Error executing template '%s': %v\n", path, err)
 				w.WriteHeader(http.StatusInternalServerError)
 			}
-			
-			return
+		} else {
+			w.Header().Add("Content-Type", mimeType)
+			w.Write(data)
 		}
-
-		w.Header().Add("Content-Type", mimeType)
-		w.Write(data)
 	}
 }
 
-func customHandler(path, mimeType string) http.HandlerFunc {
-	path = filepath.Clean(path)
+func pathHandler(path, mimeType string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		data := registry.Get(path)
 		if data != nil {
@@ -57,6 +54,50 @@ func customHandler(path, mimeType string) http.HandlerFunc {
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}
+}
+
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	param := r.URL.Query().Get("param")
+	
+	// don't do a search for nothing
+	if param == "" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	
+	rows, err := QueryDB(dbStmtSearch, param)
+	if err != nil {
+		log.Printf("Error querying for songs, where 'param' = '%s': %v\n", param, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	
+	results := make([]Song, 0, 8)
+	for rows.Next() {
+		s := Song{}
+		err = rows.Scan(&s.Title, &s.Artist)
+		if err != nil {
+			log.Println("Error scanning rows from search query:", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			break
+		}
+		results = append(results, s)
+	}
+	
+	if rows.Err() != nil {
+		log.Printf("Error iterating rows from song search, where 'param' = '%s': %v\n", param, rows.Err())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	
+	result, err := json.Marshal(results)
+	if err != nil {
+		log.Println("Error in json marshalling of song seach results:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	
+	w.Write(result)
 }
 
 func songHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,11 +164,6 @@ func stationRemoveSong(w http.ResponseWriter, r *http.Request) {
 }
 
 func stationGetPlayingSong(w http.ResponseWriter, r *http.Request) {
-	panic("TODO")
-}
-
-func searchHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO return results for specified search parameters
 	panic("TODO")
 }
 

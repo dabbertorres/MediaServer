@@ -7,23 +7,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const (
-	newUserCmd     = "insert into users (name, password) values ($1, $2)"
-	loginUserQuery = "select password from users where name = $1"
-)
-
 type User struct {
 	Name string `json:"name"`
 	Email string `json:"email"`
 }
 
-func NewUser(db *sql.DB, username, email, password string) (User, error) {
+func NewUser(username, email, password string) (User, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return User{}, err
 	}
 
-	_, err = db.Exec(newUserCmd, username, hashed)
+	_, err = ExecDB(dbStmtUserNew, username, hashed)
 	if err != nil {
 		// TODO check if error is due to 'username' already in database
 		return User{}, err
@@ -36,7 +31,7 @@ func NewUser(db *sql.DB, username, email, password string) (User, error) {
 }
 
 func Login(db *sql.DB, username, password, ipAddr, userAgent string, duration time.Duration) (SessionId, error) {
-	row := db.QueryRow(loginUserQuery, username)
+	row := QueryRowDB(dbStmtUserLogin, username)
 
 	hashed := ""
 	if err := row.Scan(&hashed); err != nil {

@@ -8,8 +8,7 @@ import (
 type Song struct {
 	Title  string  `json:"title"`
 	Artist string  `json:"artist"`
-	Album  string  `json:"album"`
-	Length float32 `json:"length,omitempty"` // time in seconds
+	source string
 }
 
 type Data []byte

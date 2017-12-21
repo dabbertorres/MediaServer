@@ -31,7 +31,7 @@ let username = window.prompt("Name?");
 let socket = new WebSocket(SOCKET_URL);
 
 if(socket !== null)
-    document.addEventListener("unload", socket.close);
+    document.addEventListener("unload", () => socket.close(1000));
 
 // TODO tell the user about the error
 socket.addEventListener("error", err => console.error(err));
@@ -43,10 +43,10 @@ function chatInput(text)
         {
             type: MESSAGE_CHAT,
             chat:
-            {
-                from:    username,
-                content: text,
-            },
+                  {
+                      from:    username,
+                      content: text,
+                  },
         });
 
     socket.send(msg);
@@ -61,8 +61,8 @@ function socketMessage(ev)
         case MESSAGE_CHAT:
             chatMessageList.appendChild(
                 listItem(2,
-                    listItemTitle(msg.chat.from + ":"),
-                    listItemTextBody(msg.chat.content)));
+                         listItemTitle(msg.chat.from + ":"),
+                         listItemTextBody(msg.chat.content)));
             break;
 
         case MESSAGE_STREAM:
@@ -73,8 +73,8 @@ function socketMessage(ev)
             {
                 playlist.appendChild(
                     listItem(2,
-                        listItemTitle(song.title),
-                        listItemSubTitle(song.artist)));
+                             listItemTitle(song.title),
+                             listItemSubTitle(song.artist)));
             }
             break;
 

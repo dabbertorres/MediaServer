@@ -2,9 +2,9 @@
 
 function stream(url, format, startTime)
 {
-    let progressBar = document.getElementById("progressBar");
+    let progressBar        = document.getElementById("progressBar");
     let progressBarTooltip = document.getElementById("progressBarTooltip");
-    let volumeTooltip = document.getElementById("volumeSliderTooltip");
+    let volumeTooltip      = document.getElementById("volumeSliderTooltip");
 
     try
     {
@@ -16,29 +16,30 @@ function stream(url, format, startTime)
         audio.addEventListener("canplay", audio.play);
 
         audio.addEventListener("timeupdate", () =>
-            {
-                progressBar.style.transform = "scaleX(" + (audio.currentTime / audio.duration) + ")";
-                progressBarTooltip.textContent = audio.currentTime;
-            });
+        {
+            progressBar.style.transform    = "scaleX(" + (audio.currentTime / audio.duration) + ")";
+            progressBarTooltip.textContent = audio.currentTime.toString();
+        });
 
         audio.addEventListener("ended", songEnd);
 
-        audio.addEventListener("error",
-            () => window.alert("Error streaming song: " + audio.error.message + " (" + audio.error.code + ")"));
+        audio.addEventListener("error", () =>
+            window.alert("Error streaming song (" + audio.error.code + "): " + audio.error.message));
 
         document.getElementById("volumeMuteToggle")
-            .addEventListener("change", () => audio.muted = this.checked);
+                .addEventListener("change", () => audio.muted = this.checked);
 
-        document.getElementById("volumeSlider").addEventListener("change", () =>
-            {
-                let val = this.value / this.max;
-                audio.volume = val;
-                volumeTooltip.textContent = Math.floor(val) + "%";
-            });
+        document.getElementById("volumeSlider")
+                .addEventListener("change", () =>
+                {
+                    let val                   = this.value / this.max;
+                    audio.volume              = val;
+                    volumeTooltip.textContent = Math.floor(val) + "%";
+                });
     }
     catch(err)
     {
-        window.alert("Your browser does not support HTML5 audio!\nGet a better browser (ie: Chrome or Firefox)!");
+        window.alert("Your browser does not support HTML5 audio!\nGet a better browser (eg: Chrome or Firefox)!");
     }
 }
 

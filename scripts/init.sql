@@ -26,7 +26,7 @@ create table if not exists sessions
 
 create table if not exists songs
 (
-    name   varchar(32)  not null,
+    title  varchar(32)  not null,
     artist varchar(32)  not null,
     source varchar(128) not null primary key
 );

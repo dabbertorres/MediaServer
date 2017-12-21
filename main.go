@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -31,7 +30,7 @@ func main() {
 	dbPass := os.Getenv(dbPassEnv)
 
 	// db startup may take a while, get it going now, while we do other setup
-	dbC, errC := connectToDB("root", dbPass, "db", "radio", 19*time.Second, 6*time.Second)
+	dbC, errC := websrv.ConnectDB("root", dbPass, "db", "radio", 19*time.Second, 6*time.Second)
 
 	if err := websrv.Init(appFileDir); err != nil {
 		log.Panicln(err)
@@ -43,13 +42,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	server := http.Server{
-		Addr:           ":8080",
-		ReadTimeout:    15 * time.Second,
-		WriteTimeout:   15 * time.Second,
-		MaxHeaderBytes: 8192,
-		Handler:        websrv.Routes(),
-	}
+	var server http.Server
 
 	waitShutdown := make(chan bool)
 
@@ -68,10 +61,21 @@ func main() {
 	var db *sql.DB
 	select {
 	case db = <-dbC:
-		defer db.Close()
+		defer websrv.CloseDB(db)
 
 	case err := <-errC:
 		log.Panicln("Error connecting to db:", err)
+	}
+	
+	router := websrv.Routes()
+	router = websrv.MiddlewareDB(db, router)
+	
+	server = http.Server{
+		Addr:           ":8080",
+		ReadTimeout:    15 * time.Second,
+		WriteTimeout:   15 * time.Second,
+		MaxHeaderBytes: 8192,
+		Handler:        router,
 	}
 
 	// hey now we can do what we want
@@ -84,43 +88,4 @@ func main() {
 	} else {
 		log.Println("Server shutdown unexpectedly:", err)
 	}
-}
-
-func connectToDB(user, password, address, dbName string, timeout, tryAgainPeriod time.Duration) (<-chan *sql.DB, <-chan error) {
-	dbC := make(chan *sql.DB)
-	errC := make(chan error)
-
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-
-		ticker := time.NewTicker(tryAgainPeriod)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-ctx.Done():
-				errC <- ctx.Err()
-				return
-
-			case <-ticker.C:
-				db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", user, password, address, dbName))
-				if err != nil {
-					errC <- err
-					return
-				}
-
-				err = db.Ping()
-				if err != nil {
-					errC <- err
-					db.Close()
-					return
-				}
-
-				dbC <- db
-			}
-		}
-	}()
-
-	return dbC, errC
 }
